@@ -1,0 +1,66 @@
+// Tầng truy cập dữ liệu — MỌI lời gọi tới backend đều đi qua đây.
+// Đổi backend chỉ cần sửa file này, UI giữ nguyên.
+
+import type {
+  CategoryNode,
+  ProductDetail,
+  ProductListResponse,
+  ProductQuery,
+  Settings,
+} from './types';
+
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ?? 'http://localhost:4000';
+
+async function getJSON<T>(path: string): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    // Dev: luôn lấy dữ liệu mới. Sản xuất có thể đổi sang revalidate.
+    cache: 'no-store',
+  });
+  if (!res.ok) {
+    throw new Error(`API ${path} lỗi ${res.status}`);
+  }
+  return (await res.json()) as T;
+}
+
+// Bọc an toàn: dùng cho Header/Footer để layout không sập khi API tắt.
+async function safe<T>(promise: Promise<T>, fallback: T): Promise<T> {
+  try {
+    return await promise;
+  } catch {
+    return fallback;
+  }
+}
+
+function buildQuery(q: ProductQuery): string {
+  const sp = new URLSearchParams();
+  if (q.category) sp.set('category', q.category);
+  if (q.brand) sp.set('brand', q.brand);
+  if (q.minPrice !== undefined) sp.set('minPrice', String(q.minPrice));
+  if (q.maxPrice !== undefined) sp.set('maxPrice', String(q.maxPrice));
+  if (q.search) sp.set('search', q.search);
+  if (q.spec) sp.set('spec', q.spec);
+  if (q.sort) sp.set('sort', q.sort);
+  if (q.page) sp.set('page', String(q.page));
+  if (q.limit) sp.set('limit', String(q.limit));
+  const s = sp.toString();
+  return s ? `?${s}` : '';
+}
+
+// ----- Danh mục -----
+export const getCategories = () => getJSON<CategoryNode[]>('/categories');
+export const getCategoriesSafe = () => safe(getCategories(), []);
+export const getCategory = (slug: string) =>
+  getJSON<CategoryNode>(`/categories/${encodeURIComponent(slug)}`);
+
+// ----- Sản phẩm -----
+export const getProducts = (q: ProductQuery = {}) =>
+  getJSON<ProductListResponse>(`/products${buildQuery(q)}`);
+export const getProduct = (slug: string) =>
+  getJSON<ProductDetail>(`/products/${encodeURIComponent(slug)}`);
+
+// ----- Cấu hình hệ thống -----
+export const getSettings = () => getJSON<Settings>('/settings');
+export const getSettingsSafe = () => safe(getSettings(), {} as Settings);
+
+export { API_BASE };
