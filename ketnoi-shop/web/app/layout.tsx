@@ -19,11 +19,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Kết Nối Shop — Máy móc, thiết bị công nghiệp chính hãng",
-    template: "%s | Kết Nối Shop",
+    default: "SWE Phú Thọ Việt Nam — Máy móc, thiết bị công nghiệp chính hãng",
+    template: "%s | SWE Phú Thọ Việt Nam",
   },
   description:
-    "Mua máy khoan, thang nhôm, dụng cụ điện chính hãng Makita, Nikawa — giá tốt, giao nhanh HCM & Hà Nội.",
+    "Mua máy khoan, thang nhôm, dụng cụ điện chính hãng — đi đầu về chất lượng, giá cả và dịch vụ. Hotline 0865 457 498.",
 };
 
 export default function RootLayout({

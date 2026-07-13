@@ -20,10 +20,10 @@ export default async function Home() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-6">
       <section className="mb-8 overflow-hidden rounded-xl bg-gradient-to-r from-red-600 to-orange-500 p-8 text-white sm:p-12">
-        <h1 className="text-2xl font-bold sm:text-4xl">Kết Nối Shop</h1>
+        <h1 className="text-2xl font-bold sm:text-4xl">SWE Phú Thọ Việt Nam</h1>
         <p className="mt-3 max-w-2xl text-white/90">
-          Máy móc, thiết bị công nghiệp chính hãng — Makita, Nikawa. Giá tốt,
-          bảo hành 12 tháng, giao nhanh HCM &amp; Hà Nội.
+          Máy móc, thiết bị công nghiệp chính hãng — đi đầu về chất lượng,
+          giá cả và dịch vụ. Bảo hành 12 tháng, giao hàng toàn quốc.
         </p>
       </section>
 

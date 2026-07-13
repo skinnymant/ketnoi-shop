@@ -186,8 +186,7 @@ async function main() {
   console.log('⚙️  Tạo cấu hình hệ thống...');
   await prisma.setting.createMany({
     data: [
-      { key: 'hotline_hcm', value: '0900 000 001' },
-      { key: 'hotline_hn', value: '0900 000 002' },
+      { key: 'hotline_hcm', value: '0865 457 498' },
       { key: 'gio_lam_viec', value: '8H - 21H (T2 - CN)' },
       { key: 'nguong_freeship', value: '2000000' },
       // Thông tin chuyển khoản (VietQR) — sửa trong Admin/Prisma Studio

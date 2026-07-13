@@ -15,7 +15,7 @@ export default async function Header() {
     <header className="sticky top-0 z-30 bg-white shadow-sm">
       <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3">
         <Link href="/" className="shrink-0 text-xl font-extrabold text-red-600">
-          Kết Nối<span className="text-zinc-800">Shop</span>
+          SWE<span className="text-zinc-800"> Phú Thọ</span>
         </Link>
 
         <div className="flex-1">
