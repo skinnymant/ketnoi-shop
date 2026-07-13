@@ -4,10 +4,11 @@ import "./globals.css";
 import { CartProvider } from "@/components/cart/CartContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { SITE_URL } from "@/lib/api";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
-  subsets: ["latin", "vietnamese"],
+  subsets: ["latin", "latin-ext"],
 });
 
 const geistMono = Geist_Mono({
@@ -16,6 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Kết Nối Shop — Máy móc, thiết bị công nghiệp chính hãng",
     template: "%s | Kết Nối Shop",

@@ -4,8 +4,30 @@ import ProductCard from '@/components/ProductCard';
 import SortSelect from '@/components/SortSelect';
 import ApiError from '@/components/ApiError';
 import type { CategoryNode, ProductListResponse } from '@/lib/types';
+import type { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  try {
+    const c = await getCategory(slug);
+    const title = c.seoTitle || c.name;
+    const description =
+      c.seoDesc || `Danh mục ${c.name} — sản phẩm chính hãng, giá tốt, giao nhanh.`;
+    return {
+      title,
+      description,
+      alternates: { canonical: `/danh-muc/${c.slug}` },
+    };
+  } catch {
+    return { title: 'Danh mục' };
+  }
+}
 
 type SP = Record<string, string | string[] | undefined>;
 

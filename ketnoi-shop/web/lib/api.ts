@@ -12,6 +12,10 @@ import type {
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ?? 'http://localhost:4000';
 
+// URL công khai của website (dùng cho SEO: metadata, sitemap, robots)
+export const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? 'http://localhost:3000';
+
 async function getJSON<T>(path: string): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     // Dev: luôn lấy dữ liệu mới. Sản xuất có thể đổi sang revalidate.

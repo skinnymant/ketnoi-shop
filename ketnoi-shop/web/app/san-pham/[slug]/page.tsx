@@ -5,8 +5,41 @@ import { getProduct } from '@/lib/api';
 import AddToCartButton from '@/components/cart/AddToCartButton';
 import { formatVND, discountPercent, effectivePrice } from '@/lib/format';
 import type { ProductDetail } from '@/lib/types';
+import type { Metadata } from 'next';
+import { SITE_URL } from '@/lib/api';
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  try {
+    const p = await getProduct(slug);
+    const title = p.seoTitle || p.name;
+    const description =
+      p.seoDesc ||
+      p.shortDesc ||
+      `Mua ${p.name} chính hãng, giá tốt, giao nhanh.`;
+    const img = p.images?.[0]?.url;
+    return {
+      title,
+      description,
+      alternates: { canonical: `/san-pham/${p.slug}` },
+      openGraph: {
+        title,
+        description,
+        type: 'website',
+        url: `${SITE_URL}/san-pham/${p.slug}`,
+        images: img ? [img] : [],
+      },
+    };
+  } catch {
+    return { title: 'Sản phẩm' };
+  }
+}
 
 export default async function ProductPage({
   params,
@@ -28,8 +61,41 @@ export default async function ProductPage({
   const totalStock =
     product.inventory?.reduce((s, i) => s + i.quantity, 0) ?? 0;
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: product.name,
+    sku: product.sku,
+    description: product.shortDesc || product.seoDesc || product.name,
+    image: product.images?.map((i) => i.url) ?? [],
+    ...(product.brand && {
+      brand: { '@type': 'Brand', name: product.brand.name },
+    }),
+    offers: {
+      '@type': 'Offer',
+      priceCurrency: 'VND',
+      price: priceNow,
+      availability:
+        totalStock > 0
+          ? 'https://schema.org/InStock'
+          : 'https://schema.org/OutOfStock',
+      url: `${SITE_URL}/san-pham/${product.slug}`,
+    },
+    ...(product.ratingCount > 0 && {
+      aggregateRating: {
+        '@type': 'AggregateRating',
+        ratingValue: product.ratingAvg,
+        reviewCount: product.ratingCount,
+      },
+    }),
+  };
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-6">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <nav className="mb-4 text-sm text-zinc-500">
         <Link href="/" className="hover:text-red-600">
           Trang chủ

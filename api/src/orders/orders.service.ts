@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { PaymentMethod } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 
@@ -68,8 +69,14 @@ export class OrdersService {
         shippingFee,
         total,
         items: { create: orderItems },
+        payments: {
+          create: {
+            method: (dto.paymentMethod ?? 'COD') as PaymentMethod,
+            amount: total,
+          },
+        },
       },
-      include: { items: true },
+      include: { items: true, payments: true },
     });
   }
 

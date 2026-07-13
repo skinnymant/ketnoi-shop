@@ -18,12 +18,21 @@ export default function CheckoutPage() {
   const [receiverEmail, setReceiverEmail] = useState('');
   const [shippingAddress, setShippingAddress] = useState('');
   const [note, setNote] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<'COD' | 'BANK_TRANSFER'>(
+    'COD',
+  );
   const [placing, setPlacing] = useState(false);
   const [orderCode, setOrderCode] = useState('');
+  const [orderTotal, setOrderTotal] = useState('0');
+  const [settings, setSettings] = useState<Record<string, string>>({});
   const [err, setErr] = useState('');
 
   useEffect(() => {
     setTokenState(getToken());
+    fetch(`${API_BASE}/settings`)
+      .then((r) => r.json())
+      .then(setSettings)
+      .catch(() => {});
   }, []);
 
   const shippingFee =
@@ -49,6 +58,7 @@ export default function CheckoutPage() {
         receiverEmail: receiverEmail || undefined,
         shippingAddress,
         note: note || undefined,
+        paymentMethod,
         items: items.map((i) => ({ productId: i.id, quantity: i.quantity })),
       };
       const res = await fetch(`${API_BASE}/orders`, {
@@ -69,6 +79,7 @@ export default function CheckoutPage() {
         return;
       }
       setOrderCode(data.orderCode);
+      setOrderTotal(String(data.total));
       clear();
     } catch {
       setErr('Không kết nối được máy chủ.');
@@ -86,19 +97,69 @@ export default function CheckoutPage() {
   }
 
   if (orderCode) {
+    const isBank = paymentMethod === 'BANK_TRANSFER';
+    const bankCode = settings.bank_code;
+    const bankAccount = settings.bank_account;
+    const bankName = settings.bank_name;
+    const qrUrl =
+      isBank && bankCode && bankAccount
+        ? `https://img.vietqr.io/image/${bankCode}-${bankAccount}-compact2.png?amount=${Math.round(
+            Number(orderTotal),
+          )}&addInfo=${encodeURIComponent(orderCode)}&accountName=${encodeURIComponent(
+            bankName ?? '',
+          )}`
+        : '';
     return (
-      <div className="mx-auto max-w-md px-4 py-16 text-center">
+      <div className="mx-auto max-w-md px-4 py-12 text-center">
         <div className="text-3xl">✓</div>
         <h1 className="mt-2 text-xl font-bold text-zinc-800">
           Đặt hàng thành công!
         </h1>
         <p className="mt-2 text-sm text-zinc-500">
-          Mã đơn hàng của bạn:{' '}
+          Mã đơn hàng:{' '}
           <span className="font-semibold text-red-600">{orderCode}</span>
         </p>
+        <p className="mt-1 text-sm text-zinc-500">
+          Tổng tiền: <span className="font-semibold">{formatVND(orderTotal)}</span>
+        </p>
+
+        {isBank ? (
+          <div className="mt-5 rounded-lg bg-white p-4 text-left ring-1 ring-zinc-200">
+            <h2 className="mb-2 text-center font-semibold text-zinc-800">
+              Chuyển khoản ngân hàng
+            </h2>
+            {qrUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={qrUrl} alt="VietQR" className="mx-auto h-56 w-56" />
+            )}
+            <ul className="mt-3 space-y-1 text-sm text-zinc-600">
+              <li>
+                Chủ tài khoản: <b>{bankName}</b>
+              </li>
+              <li>
+                Số tài khoản: <b>{bankAccount}</b>
+              </li>
+              <li>
+                Số tiền: <b>{formatVND(orderTotal)}</b>
+              </li>
+              <li>
+                Nội dung: <b>{orderCode}</b>
+              </li>
+            </ul>
+            <p className="mt-2 text-xs text-zinc-400">
+              Quét mã QR bằng app ngân hàng để thanh toán. Đơn sẽ được xác nhận
+              sau khi nhận được tiền.
+            </p>
+          </div>
+        ) : (
+          <p className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">
+            Thanh toán khi nhận hàng (COD) — shipper thu tiền khi giao.
+          </p>
+        )}
+
         <Link
           href="/"
-          className="mt-5 inline-block rounded-md bg-red-600 px-5 py-2 text-sm font-semibold text-white hover:bg-red-700"
+          className="mt-6 inline-block rounded-md bg-red-600 px-5 py-2 text-sm font-semibold text-white hover:bg-red-700"
         >
           Về trang chủ
         </Link>
@@ -161,6 +222,30 @@ export default function CheckoutPage() {
             rows={2}
             className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-red-500"
           />
+
+          <div className="rounded-md border border-zinc-200 p-3">
+            <p className="mb-2 text-sm font-medium text-zinc-700">
+              Phương thức thanh toán
+            </p>
+            <label className="flex items-center gap-2 py-1 text-sm text-zinc-600">
+              <input
+                type="radio"
+                name="pm"
+                checked={paymentMethod === 'COD'}
+                onChange={() => setPaymentMethod('COD')}
+              />
+              Thanh toán khi nhận hàng (COD)
+            </label>
+            <label className="flex items-center gap-2 py-1 text-sm text-zinc-600">
+              <input
+                type="radio"
+                name="pm"
+                checked={paymentMethod === 'BANK_TRANSFER'}
+                onChange={() => setPaymentMethod('BANK_TRANSFER')}
+              />
+              Chuyển khoản ngân hàng (VietQR)
+            </label>
+          </div>
 
           {err && <p className="text-sm text-red-600">{err}</p>}
 

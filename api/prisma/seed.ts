@@ -190,6 +190,10 @@ async function main() {
       { key: 'hotline_hn', value: '0900 000 002' },
       { key: 'gio_lam_viec', value: '8H - 21H (T2 - CN)' },
       { key: 'nguong_freeship', value: '2000000' },
+      // Thông tin chuyển khoản (VietQR) — sửa trong Admin/Prisma Studio
+      { key: 'bank_code', value: '970436' }, // BIN Vietcombank
+      { key: 'bank_account', value: '1234567890' },
+      { key: 'bank_name', value: 'CONG TY KET NOI SHOP' },
     ],
   });
 

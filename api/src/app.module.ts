@@ -9,6 +9,7 @@ import { UploadsModule } from './uploads/uploads.module';
 import { SettingsModule } from './settings/settings.module';
 import { AuthModule } from './auth/auth.module';
 import { OrdersModule } from './orders/orders.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { OrdersModule } from './orders/orders.module';
     SettingsModule,
     AuthModule,
     OrdersModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

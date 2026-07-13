@@ -3,6 +3,7 @@ import {
   ArrayMinSize,
   IsArray,
   IsEmail,
+  IsIn,
   IsInt,
   IsOptional,
   IsString,
@@ -41,6 +42,10 @@ export class CreateOrderDto {
   @IsOptional()
   @IsString()
   note?: string;
+
+  @IsOptional()
+  @IsIn(['COD', 'BANK_TRANSFER'])
+  paymentMethod?: 'COD' | 'BANK_TRANSFER'; // mặc định COD
 
   @IsArray()
   @ArrayMinSize(1)

@@ -69,6 +69,8 @@ export interface ProductDetail extends ProductCard {
   description?: string | null;
   shortDesc?: string | null;
   warrantyMonths?: number | null;
+  seoTitle?: string | null;
+  seoDesc?: string | null;
   category: CategoryNode & { parent?: CategoryNode | null };
   specs: ProductSpec[];
   inventory: InventoryRow[];
