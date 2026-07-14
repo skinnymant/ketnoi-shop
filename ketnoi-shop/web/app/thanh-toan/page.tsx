@@ -42,10 +42,6 @@ export default function CheckoutPage() {
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setErr('');
-    if (!token) {
-      setErr('Bạn cần đăng nhập trước khi đặt hàng.');
-      return;
-    }
     if (items.length === 0) {
       setErr('Giỏ hàng trống.');
       return;
@@ -61,11 +57,13 @@ export default function CheckoutPage() {
         paymentMethod,
         items: items.map((i) => ({ productId: i.id, quantity: i.quantity })),
       };
+      // Đăng nhập là tùy chọn: có token thì đơn gắn vào tài khoản,
+      // không có thì đặt hàng như khách vãng lai.
       const res = await fetch(`${API_BASE}/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(body),
       });
@@ -172,12 +170,12 @@ export default function CheckoutPage() {
       <h1 className="mb-5 text-xl font-bold text-zinc-800">Thanh toán</h1>
 
       {!token && (
-        <div className="mb-5 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">
-          Bạn chưa đăng nhập.{' '}
+        <div className="mb-5 rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-600">
+          Bạn có thể đặt hàng không cần tài khoản.{' '}
           <Link href="/dang-nhap" className="font-semibold underline">
             Đăng nhập / Đăng ký
           </Link>{' '}
-          để đặt hàng.
+          nếu muốn theo dõi lịch sử đơn hàng.
         </div>
       )}
 

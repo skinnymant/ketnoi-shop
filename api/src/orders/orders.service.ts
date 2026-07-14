@@ -13,7 +13,8 @@ const SHIPPING_FLAT = 30000; // phí ship mặc định khi chưa đạt ngưỡ
 export class OrdersService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(customerId: string, dto: CreateOrderDto) {
+  // customerId = null → đơn khách vãng lai (không cần đăng nhập)
+  async create(customerId: string | null, dto: CreateOrderDto) {
     const ids = dto.items.map((i) => i.productId);
     const products = await this.prisma.product.findMany({
       where: { id: { in: ids }, deletedAt: null, isActive: true },
