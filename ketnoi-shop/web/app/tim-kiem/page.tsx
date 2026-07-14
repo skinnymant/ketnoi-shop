@@ -28,21 +28,25 @@ export default async function SearchPage({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6">
-      <h1 className="mb-1 text-xl font-bold text-zinc-800">
-        Kết quả tìm kiếm
-      </h1>
-      {keyword ? (
-        <p className="mb-5 text-sm text-zinc-500">
-          {total} kết quả cho “<span className="font-medium">{keyword}</span>”
-        </p>
-      ) : (
-        <p className="mb-5 text-sm text-zinc-500">Nhập từ khóa để tìm sản phẩm.</p>
-      )}
+      {/* Thanh tiêu đề trắng đồng bộ với trang danh mục */}
+      <div className="mb-5 rounded-lg border border-zinc-200 bg-white px-4 py-3">
+        <h1 className="text-lg font-bold text-zinc-800">Kết quả tìm kiếm</h1>
+        {keyword ? (
+          <p className="mt-0.5 text-sm text-zinc-500">
+            {total} kết quả cho “
+            <span className="font-semibold text-teal-700">{keyword}</span>”
+          </p>
+        ) : (
+          <p className="mt-0.5 text-sm text-zinc-500">
+            Nhập từ khóa để tìm sản phẩm.
+          </p>
+        )}
+      </div>
 
       {error ? (
         <ApiError />
       ) : keyword && results.length === 0 ? (
-        <p className="text-sm text-zinc-500">
+        <p className="rounded-lg border border-zinc-200 bg-white p-6 text-sm text-zinc-500">
           Không tìm thấy sản phẩm phù hợp. Thử từ khóa khác nhé.
         </p>
       ) : (

@@ -3,12 +3,13 @@
 import Link from 'next/link';
 import { useCart } from './CartContext';
 
+// Nút giỏ hàng đặt trên thanh nav nền teal — nền teal đậm, badge số lượng đỏ.
 export default function CartLink() {
   const { count, ready } = useCart();
   return (
     <Link
       href="/gio-hang"
-      className="shrink-0 rounded-md border border-zinc-200 px-3 py-2 text-sm font-medium text-zinc-700 hover:border-red-300 hover:text-red-600"
+      className="shrink-0 rounded-md bg-teal-800 px-3 py-2 text-sm font-medium text-white hover:bg-teal-900"
     >
       Giỏ hàng
       {ready && count > 0 && (

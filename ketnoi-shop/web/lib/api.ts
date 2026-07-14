@@ -3,6 +3,7 @@
 
 import type {
   CategoryNode,
+  ProductCard,
   ProductDetail,
   ProductListResponse,
   ProductQuery,
@@ -62,6 +63,28 @@ export const getProducts = (q: ProductQuery = {}) =>
   getJSON<ProductListResponse>(`/products${buildQuery(q)}`);
 export const getProduct = (slug: string) =>
   getJSON<ProductDetail>(`/products/${encodeURIComponent(slug)}`);
+
+// Sản phẩm theo danh mục — bọc an toàn, API lỗi trả mảng rỗng
+// (dùng cho các khu vực danh mục ở trang chủ, không làm sập trang).
+export const getProductsByCategory = (slug: string, limit = 5) =>
+  safe(
+    getProducts({ category: slug, limit }).then((res) => res.data),
+    [] as ProductCard[],
+  );
+
+// ----- Thương hiệu -----
+// Kiểu dữ liệu Brand khai báo tại đây (GET /brands trả về danh sách này).
+export interface Brand {
+  id: string;
+  name: string;
+  slug: string;
+  logoUrl?: string | null;
+  description?: string | null;
+  isActive: boolean;
+}
+
+export const getBrands = () => getJSON<Brand[]>('/brands');
+export const getBrandsSafe = () => safe(getBrands(), [] as Brand[]);
 
 // ----- Cấu hình hệ thống -----
 export const getSettings = () => getJSON<Settings>('/settings');

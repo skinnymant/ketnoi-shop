@@ -90,14 +90,23 @@ export default async function ProductPage({
     }),
   };
 
+  // Cam kết bán hàng hiển thị ở cột thông tin
+  const camKet = [
+    'Hàng chính hãng 100%, đầy đủ hóa đơn',
+    'Đổi trả miễn phí trong 7 ngày',
+    `Bảo hành chính hãng ${product.warrantyMonths ?? 12} tháng`,
+    'Giao hàng toàn quốc, kiểm tra trước khi nhận',
+  ];
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-6">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      {/* Breadcrumb */}
       <nav className="mb-4 text-sm text-zinc-500">
-        <Link href="/" className="hover:text-red-600">
+        <Link href="/" className="hover:text-teal-700">
           Trang chủ
         </Link>
         {product.category && (
@@ -105,7 +114,7 @@ export default async function ProductPage({
             <span className="mx-1">/</span>
             <Link
               href={`/danh-muc/${product.category.slug}`}
-              className="hover:text-red-600"
+              className="hover:text-teal-700"
             >
               {product.category.name}
             </Link>
@@ -115,130 +124,170 @@ export default async function ProductPage({
         <span className="text-zinc-700">{product.name}</span>
       </nav>
 
-      <div className="grid gap-8 lg:grid-cols-2">
-        {/* Gallery */}
-        <div>
-          <div className="relative aspect-square rounded-lg bg-white ring-1 ring-zinc-200">
-            {mainImg ? (
-              <Image
-                src={mainImg}
-                alt={product.images[0]?.alt ?? product.name}
-                fill
-                sizes="(max-width: 1024px) 100vw, 40vw"
-                className="object-contain p-4"
-                priority
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center text-zinc-300">
-                Không có ảnh
+      {/* Khối chính: gallery + thông tin mua hàng */}
+      <div className="rounded-lg border border-zinc-200 bg-white p-4 sm:p-6">
+        <div className="grid gap-8 lg:grid-cols-2">
+          {/* Gallery */}
+          <div>
+            <div className="relative aspect-square rounded-lg border border-zinc-200 bg-white">
+              {mainImg ? (
+                <Image
+                  src={mainImg}
+                  alt={product.images[0]?.alt ?? product.name}
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 40vw"
+                  className="object-contain p-4"
+                  priority
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center text-zinc-300">
+                  Không có ảnh
+                </div>
+              )}
+              {off !== null && (
+                <span className="absolute left-3 top-3 rounded bg-red-600 px-2 py-1 text-sm font-bold text-white">
+                  -{off}%
+                </span>
+              )}
+            </div>
+            {product.images.length > 1 && (
+              <div className="mt-3 flex gap-2">
+                {product.images.slice(0, 5).map((im, i) => (
+                  <div
+                    key={i}
+                    className="relative h-16 w-16 rounded border border-zinc-200 bg-white hover:border-teal-700"
+                  >
+                    <Image
+                      src={im.url}
+                      alt={im.alt ?? ''}
+                      fill
+                      sizes="64px"
+                      className="object-contain p-1"
+                    />
+                  </div>
+                ))}
               </div>
             )}
-            {off !== null && (
-              <span className="absolute left-3 top-3 rounded bg-red-600 px-2 py-1 text-sm font-semibold text-white">
-                -{off}%
-              </span>
-            )}
           </div>
-          {product.images.length > 1 && (
-            <div className="mt-3 flex gap-2">
-              {product.images.slice(0, 5).map((im, i) => (
-                <div
-                  key={i}
-                  className="relative h-16 w-16 rounded bg-white ring-1 ring-zinc-200"
-                >
-                  <Image
-                    src={im.url}
-                    alt={im.alt ?? ''}
-                    fill
-                    sizes="64px"
-                    className="object-contain p-1"
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
 
-        {/* Info */}
-        <div>
-          {product.brand && (
-            <span className="text-sm text-zinc-400">{product.brand.name}</span>
-          )}
-          <h1 className="mt-1 text-2xl font-bold text-zinc-900">
-            {product.name}
-          </h1>
-          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-zinc-500">
-            <span>SKU: {product.sku}</span>
-            <span>·</span>
-            <span>Đã bán {product.soldCount}</span>
-            {product.ratingCount > 0 && (
-              <>
-                <span>·</span>
-                <span className="text-amber-500">
-                  ★ {product.ratingAvg.toFixed(1)} ({product.ratingCount})
+          {/* Thông tin mua hàng */}
+          <div>
+            <h1 className="text-2xl font-bold text-zinc-900">{product.name}</h1>
+
+            {/* Thương hiệu | Mã | Sao | Đã bán */}
+            <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-zinc-500">
+              {product.brand && (
+                <>
+                  <span>
+                    Thương hiệu:{' '}
+                    <span className="font-semibold text-teal-700">
+                      {product.brand.name}
+                    </span>
+                  </span>
+                  <span className="text-zinc-300">|</span>
+                </>
+              )}
+              <span>Mã: {product.sku}</span>
+              <span className="text-zinc-300">|</span>
+              <span className="tracking-tight text-amber-400" aria-hidden>
+                ★★★★★
+              </span>
+              <span>Đã bán {product.soldCount}</span>
+              {product.ratingCount > 0 && (
+                <span className="text-zinc-400">
+                  ({product.ratingAvg.toFixed(1)}/5 · {product.ratingCount} đánh
+                  giá)
                 </span>
-              </>
-            )}
-          </div>
-
-          <div className="mt-4 flex flex-wrap items-baseline gap-3">
-            <span className="text-3xl font-bold text-red-600">
-              {formatVND(priceNow)}
-            </span>
-            {off !== null && (
-              <span className="text-lg text-zinc-400 line-through">
-                {formatVND(product.price)}
-              </span>
-            )}
-          </div>
-
-          {product.freeShip && (
-            <p className="mt-2 text-sm font-medium text-emerald-600">
-              ✓ Miễn phí vận chuyển
-            </p>
-          )}
-          <p className="mt-1 text-sm text-zinc-500">
-            {totalStock > 0 ? `Còn hàng (${totalStock})` : 'Tạm hết hàng'}
-            {product.warrantyMonths
-              ? ` · Bảo hành ${product.warrantyMonths} tháng`
-              : ''}
-          </p>
-
-          <div className="mt-6">
-            <AddToCartButton
-              product={{
-                id: product.id,
-                slug: product.slug,
-                name: product.name,
-                price: priceNow,
-                image: mainImg,
-              }}
-            />
-          </div>
-
-          {product.specs.length > 0 && (
-            <div className="mt-8">
-              <h2 className="mb-2 font-semibold text-zinc-800">
-                Thông số kỹ thuật
-              </h2>
-              <table className="w-full text-sm">
-                <tbody>
-                  {product.specs.map((s, i) => (
-                    <tr key={i} className="border-b border-zinc-100">
-                      <td className="w-40 py-2 text-zinc-500">{s.specName}</td>
-                      <td className="py-2 text-zinc-800">{s.specValue}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              )}
             </div>
-          )}
+
+            {/* Giá */}
+            <div className="mt-4 flex flex-wrap items-center gap-3 rounded-lg bg-zinc-100 px-4 py-3">
+              <span className="text-2xl font-bold text-red-600">
+                {formatVND(priceNow)}
+              </span>
+              {off !== null && (
+                <>
+                  <span className="text-base text-zinc-400 line-through">
+                    {formatVND(product.price)}
+                  </span>
+                  <span className="rounded bg-red-600 px-1.5 py-0.5 text-xs font-bold text-white">
+                    -{off}%
+                  </span>
+                </>
+              )}
+            </div>
+
+            {/* Tình trạng kho + freeship */}
+            <p className="mt-3 text-sm text-zinc-500">
+              {totalStock > 0 ? (
+                <span className="font-medium text-teal-700">
+                  ✓ Còn hàng ({totalStock})
+                </span>
+              ) : (
+                <span className="font-medium text-zinc-400">Tạm hết hàng</span>
+              )}
+              {product.freeShip && (
+                <span className="ml-3 font-medium text-teal-700">
+                  ✓ Miễn phí vận chuyển
+                </span>
+              )}
+            </p>
+
+            {/* Khối cam kết */}
+            <ul className="mt-4 space-y-1.5 rounded-lg border border-teal-100 bg-teal-50 p-4 text-sm text-zinc-700">
+              {camKet.map((c) => (
+                <li key={c} className="flex items-start gap-2">
+                  <span className="font-bold text-teal-700" aria-hidden>
+                    ✓
+                  </span>
+                  {c}
+                </li>
+              ))}
+            </ul>
+
+            <div className="mt-6">
+              <AddToCartButton
+                product={{
+                  id: product.id,
+                  slug: product.slug,
+                  name: product.name,
+                  price: priceNow,
+                  image: mainImg,
+                }}
+              />
+            </div>
+
+            {/* Thông số kỹ thuật — bảng kẻ sọc */}
+            {product.specs.length > 0 && (
+              <div className="mt-8">
+                <h2 className="mb-2 border-l-4 border-teal-700 pl-2 font-bold text-zinc-800">
+                  Thông số kỹ thuật
+                </h2>
+                <table className="w-full overflow-hidden rounded-lg text-sm">
+                  <tbody>
+                    {product.specs.map((s, i) => (
+                      <tr key={i} className="odd:bg-zinc-100">
+                        <td className="w-40 px-3 py-2 text-zinc-500">
+                          {s.specName}
+                        </td>
+                        <td className="px-3 py-2 text-zinc-800">
+                          {s.specValue}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
+      {/* Mô tả sản phẩm */}
       {product.description && (
-        <div className="mt-10">
-          <h2 className="mb-3 text-lg font-bold text-zinc-800">
+        <div className="mt-6 rounded-lg border border-zinc-200 bg-white p-4 sm:p-6">
+          <h2 className="mb-3 border-l-4 border-teal-700 pl-2 text-lg font-bold text-zinc-800">
             Mô tả sản phẩm
           </h2>
           <div
@@ -248,22 +297,23 @@ export default async function ProductPage({
         </div>
       )}
 
+      {/* Đánh giá */}
       {product.reviews.length > 0 && (
-        <div className="mt-10">
-          <h2 className="mb-3 text-lg font-bold text-zinc-800">
+        <div className="mt-6 rounded-lg border border-zinc-200 bg-white p-4 sm:p-6">
+          <h2 className="mb-3 border-l-4 border-teal-700 pl-2 text-lg font-bold text-zinc-800">
             Đánh giá ({product.ratingCount})
           </h2>
           <ul className="space-y-3">
             {product.reviews.map((r) => (
               <li
                 key={r.id}
-                className="rounded-lg bg-white p-4 ring-1 ring-zinc-200"
+                className="rounded-lg border border-zinc-200 bg-zinc-50 p-4"
               >
                 <div className="flex items-center gap-2">
                   <span className="font-medium text-zinc-800">
                     {r.customer.fullName}
                   </span>
-                  <span className="text-amber-500">
+                  <span className="text-amber-400">
                     {'★'.repeat(r.rating)}
                   </span>
                 </div>
