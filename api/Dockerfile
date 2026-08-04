@@ -24,4 +24,5 @@ COPY --from=builder /app ./
 EXPOSE 4000
 
 # Chạy migration rồi khởi động server
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]
+# (build xuất ra dist/src/main.js vì có file .ts ở thư mục gốc như prisma.config.ts)
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/src/main"]
