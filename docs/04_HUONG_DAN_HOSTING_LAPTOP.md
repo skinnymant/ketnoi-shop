@@ -32,8 +32,8 @@ cd ketnoi-shop
 
    | Subdomain | Domain | Service (URL) |
    |-----------|--------|---------------|
-   | `api`     | swephuthovietnam.vn | `http://api:4000` |
-   | `media`   | swephuthovietnam.vn | `http://minio:9000` |
+   | `api`     | swevietnam.com | `http://api:4000` |
+   | `media`   | swevietnam.com | `http://minio:9000` |
 
    > Dùng đúng tên service `api` và `minio` — đó là tên container trong mạng docker.
 
@@ -65,12 +65,12 @@ docker compose -f docker-compose.laptop.yml exec minio \
 (Thay biến bằng giá trị thật nếu shell không tự đọc từ .env.)
 
 ## 9. Kiểm tra backend
-Mở trình duyệt: `https://api.swephuthovietnam.vn/products?limit=1` → thấy JSON là OK.
+Mở trình duyệt: `https://api.swevietnam.com/products?limit=1` → thấy JSON là OK.
 
 ## 10. Deploy frontend lên Vercel
 - Import repo, Root Directory = `ketnoi-shop/web`.
-- Env: `NEXT_PUBLIC_API_URL=https://api.swephuthovietnam.vn`,
-        `NEXT_PUBLIC_SITE_URL=https://swephuthovietnam.vn`.
+- Env: `NEXT_PUBLIC_API_URL=https://api.swevietnam.com`,
+        `NEXT_PUBLIC_SITE_URL=https://swevietnam.com`.
 - Trong Cloudflare: bản ghi trỏ Vercel để **DNS only** (mây xám);
   `api`/`media` do tunnel tự tạo (mây cam).
 
