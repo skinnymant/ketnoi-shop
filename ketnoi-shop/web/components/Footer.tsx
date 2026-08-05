@@ -11,7 +11,7 @@ export default async function Footer() {
         {/* Cột 1: thông tin công ty */}
         <div>
           <div className="text-lg font-extrabold text-white">
-            SWE PHÚ THỌ VIỆT NAM
+            SWE VIỆT NAM
           </div>
           <p className="mt-2 text-sm">
             Công ty TNHH Thương mại và Dịch vụ SWE Việt Nam

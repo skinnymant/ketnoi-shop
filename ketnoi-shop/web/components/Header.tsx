@@ -23,10 +23,10 @@ export default async function Header() {
             <span className="text-xl font-extrabold text-teal-700">SWE</span>
             <span className="text-xl font-extrabold text-zinc-800">
               {' '}
-              Phú Thọ
+              Việt Nam
             </span>
             <span className="block text-[10px] font-medium tracking-wide text-zinc-400">
-              CHUYÊN GIA CÔNG CỤ - DỤNG CỤ
+              DỤNG CỤ &amp; THIẾT BỊ CÔNG NGHIỆP CHÍNH HÃNG
             </span>
           </Link>
 

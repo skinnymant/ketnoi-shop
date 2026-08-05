@@ -78,7 +78,7 @@ export default async function Home() {
       {/* 1. Hero banner — gradient teal, không dùng ảnh ngoài */}
       <section className="mb-6 overflow-hidden rounded-xl bg-gradient-to-r from-teal-700 to-emerald-600 p-8 text-white sm:p-12">
         <p className="text-xs font-semibold uppercase tracking-widest text-white/80">
-          SWE Phú Thọ Việt Nam
+          SWE Việt Nam
         </p>
         <h1 className="mt-2 text-3xl font-extrabold sm:text-5xl">
           CHÍNH HÃNG - GIÁ TỐT

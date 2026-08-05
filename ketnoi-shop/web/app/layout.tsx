@@ -19,11 +19,12 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "SWE Phú Thọ Việt Nam — Máy móc, thiết bị công nghiệp chính hãng",
-    template: "%s | SWE Phú Thọ Việt Nam",
+    default:
+      "SWE Việt Nam — Dụng cụ & thiết bị công nghiệp chính hãng, giá tốt",
+    template: "%s | SWE Việt Nam",
   },
   description:
-    "Mua máy khoan, thang nhôm, dụng cụ điện chính hãng — đi đầu về chất lượng, giá cả và dịch vụ. Hotline 0865 457 498.",
+    "Mua máy khoan, máy hàn, thang nhôm, xe đẩy hàng, dụng cụ cầm tay chính hãng Makita, Bosch, Milwaukee, Jasic — bảo hành đầy đủ, giao toàn quốc. Hotline 0865 457 498.",
 };
 
 export default function RootLayout({
