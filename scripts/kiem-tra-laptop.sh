@@ -67,6 +67,10 @@ if echo "$health" | grep -q '"database":"connected"'; then
   ok "/health: $health"
 else
   bad "/health lỗi: ${health:0:200}"
+  if echo "$health" | grep -q '"ok":true'; then
+    hint "Cổng 4000 đang chạy NHẦM một API khác (không phải NestJS của repo này)."
+    hint "Chạy: bash scripts/sua-api.sh"
+  fi
   hint "10 dòng log cuối của api:"
   dc logs --tail=10 api 2>&1 | sed 's/^/      /'
 fi

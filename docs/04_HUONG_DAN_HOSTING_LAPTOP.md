@@ -89,6 +89,13 @@ chạy lại script sinh ảnh trỏ vào API laptop (cần Python + Pillow). Nh
    Script kiểm tra lần lượt Docker → container → API → tunnel → Vercel, tự khởi động
    lại container bị dừng (`--fix`) và in gợi ý sửa ở mỗi mục ✘.
 3. Sửa theo gợi ý ở mục ✘ **đầu tiên**, rồi chạy lại script tới khi tất cả ✔.
+4. Nếu `/health` trả `{"ok":true,"service":"ketnoi-api",...}` và `/products` báo
+   `Cannot GET` → cổng 4000 đang chạy **nhầm API của project khác**. Chạy:
+   ```bash
+   bash scripts/sua-api.sh
+   ```
+   Script liệt kê container, hỏi trước khi dừng container lạ (không xoá dữ liệu),
+   build + chạy lại đúng API và tunnel, rồi kiểm tra lại toàn bộ.
 
 Phòng ngừa: bật Docker Desktop → Settings → General → *Start Docker Desktop when you
 sign in*; tạo monitor miễn phí (UptimeRobot) cho `https://api.swevietnam.com/health`.
