@@ -18,7 +18,7 @@ export default async function Header() {
     <header className="sticky top-0 z-30 shadow-sm">
       {/* Tầng 1: logo + tìm kiếm + giờ làm việc/hotline + hướng dẫn thanh toán */}
       <div className="bg-white">
-        <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-4 px-4 py-3 sm:flex-nowrap">
           <Link href="/" className="shrink-0 leading-tight">
             <span className="text-xl font-extrabold text-teal-700">SWE</span>
             <span className="text-xl font-extrabold text-zinc-800">
@@ -30,7 +30,7 @@ export default async function Header() {
             </span>
           </Link>
 
-          <div className="flex-1">
+          <div className="min-w-0 basis-full sm:flex-1 sm:basis-0">
             <SearchBox />
           </div>
 

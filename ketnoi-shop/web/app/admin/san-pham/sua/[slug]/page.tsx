@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import AdminNav from '@/components/admin/AdminNav';
 import ProductForm from '@/components/admin/ProductForm';
-import { API_BASE } from '@/lib/api';
+import { getProduct } from '@/lib/api';
 import { getAdminToken } from '@/lib/admin-client';
 import type { ProductDetail } from '@/lib/types';
 
@@ -24,11 +24,7 @@ export default function EditProductPage() {
 
   useEffect(() => {
     if (!slug) return;
-    fetch(`${API_BASE}/products/${slug}`)
-      .then((r) => {
-        if (!r.ok) throw new Error();
-        return r.json();
-      })
+    getProduct(slug)
       .then(setProduct)
       .catch(() => setErr('Không tải được sản phẩm.'));
   }, [slug]);

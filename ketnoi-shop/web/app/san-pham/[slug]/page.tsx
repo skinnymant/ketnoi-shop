@@ -67,7 +67,7 @@ export default async function ProductPage({
     name: product.name,
     sku: product.sku,
     description: product.shortDesc || product.seoDesc || product.name,
-    image: product.images?.map((i) => i.url) ?? [],
+    image: product.images?.map((i) => new URL(i.url, SITE_URL).href) ?? [],
     ...(product.brand && {
       brand: { '@type': 'Brand', name: product.brand.name },
     }),

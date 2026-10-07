@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { API_BASE } from '@/lib/api';
+import { API_BASE, getProducts } from '@/lib/api';
 import { formatVND } from '@/lib/format';
 import { getAdminToken, clearAdminToken } from '@/lib/admin-client';
 import AdminNav from '@/components/admin/AdminNav';
@@ -21,9 +21,8 @@ export default function AdminProductsPage() {
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch(`${API_BASE}/products?limit=50`);
-      const d = await res.json();
-      setProducts(Array.isArray(d.data) ? d.data : []);
+      const result = await getProducts({ limit: 50 });
+      setProducts(result.data);
     } catch {
       setErr('Không tải được danh sách sản phẩm.');
     }

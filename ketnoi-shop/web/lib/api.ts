@@ -1,6 +1,8 @@
 // Tầng truy cập dữ liệu — MỌI lời gọi tới backend đều đi qua đây.
 // Đổi backend chỉ cần sửa file này, UI giữ nguyên.
 
+import { withProductImages } from './product-images';
+
 import type {
   CategoryNode,
   ProductCard,
@@ -59,10 +61,14 @@ export const getCategory = (slug: string) =>
   getJSON<CategoryNode>(`/categories/${encodeURIComponent(slug)}`);
 
 // ----- Sản phẩm -----
-export const getProducts = (q: ProductQuery = {}) =>
-  getJSON<ProductListResponse>(`/products${buildQuery(q)}`);
-export const getProduct = (slug: string) =>
-  getJSON<ProductDetail>(`/products/${encodeURIComponent(slug)}`);
+export const getProducts = async (q: ProductQuery = {}) => {
+  const result = await getJSON<ProductListResponse>(`/products${buildQuery(q)}`);
+  return { ...result, data: result.data.map(withProductImages) };
+};
+export const getProduct = async (slug: string) =>
+  withProductImages(
+    await getJSON<ProductDetail>(`/products/${encodeURIComponent(slug)}`),
+  );
 
 // Sản phẩm theo danh mục — bọc an toàn, API lỗi trả mảng rỗng
 // (dùng cho các khu vực danh mục ở trang chủ, không làm sập trang).
