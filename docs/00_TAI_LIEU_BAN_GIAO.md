@@ -175,7 +175,7 @@ Mở **http://localhost:3000**
 | Hiện tượng | Nguyên nhân & cách xử lý |
 |------------|--------------------------|
 | Mở **localhost:3000 không được** | Chưa chạy `npm run dev` trong `ketnoi-shop/web`; hoặc đang cài `npm install`. Xem log terminal. |
-| Trang mở nhưng báo “Không kết nối được API” | Backend chưa chạy (`npm run start:dev` trong `api`) hoặc DB chưa bật. Kiểm tra http://localhost:4000/health |
+| Trang mở nhưng báo “Không kết nối được API” | **Máy dev:** backend chưa chạy (`npm run start:dev` trong `api`) hoặc DB chưa bật — kiểm tra http://localhost:4000/health. **Website thật:** mở `https://www.swevietnam.com/kiem-tra-api` để xem kết luận, rồi chạy `bash scripts/kiem-tra-laptop.sh --fix` trên laptop (xem docs/04 mục 12) |
 | `P1001 Can't reach database` | Docker chưa bật: `docker compose up -d` tại `D:\duan\ketnoi-shop` |
 | Trang sản phẩm trống | Chưa seed: `npx prisma db seed` trong `api` |
 | Lỗi CORS trên trình duyệt | API chỉ cho phép origin `http://localhost:3000` (sửa trong `api/src/main.ts` nếu đổi cổng) |
