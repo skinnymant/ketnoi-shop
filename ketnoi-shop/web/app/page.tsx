@@ -9,8 +9,6 @@ import ProductCard from '@/components/ProductCard';
 import ApiError from '@/components/ApiError';
 import type { ProductCard as ProductCardType } from '@/lib/types';
 
-export const dynamic = 'force-dynamic';
-
 // Tính % giảm giá từ price/salePrice (API trả Decimal dạng CHUỖI).
 function tinhPhanTramGiam(p: ProductCardType): number {
   const gia = Number(p.price);
@@ -23,7 +21,7 @@ function tinhPhanTramGiam(p: ProductCardType): number {
 const USP = [
   { icon: '🚚', text: 'Giao hàng toàn quốc' },
   { icon: '✅', text: 'Cam kết chính hãng — đổi trả 7 ngày' },
-  { icon: '🛠️', text: 'Bảo hành 12 tháng' },
+  { icon: '🛠️', text: 'Bảo hành chính hãng' },
 ];
 
 // Lưới 5 cột dùng chung cho mọi khu vực sản phẩm
@@ -84,14 +82,14 @@ export default async function Home() {
           CHÍNH HÃNG - GIÁ TỐT
         </h1>
         <p className="mt-3 max-w-2xl text-white/90">
-          Máy móc, thiết bị công nghiệp — bảo hành 12 tháng, giao toàn quốc.
+          Máy móc, thiết bị công nghiệp — bảo hành chính hãng, giao toàn quốc.
         </p>
-        <a
-          href="#ban-chay"
+        <Link
+          href="/khuyen-mai"
           className="mt-6 inline-block rounded-lg bg-red-600 px-6 py-2.5 text-sm font-bold text-white hover:bg-red-700"
         >
-          Mua ngay
-        </a>
+          Xem khuyến mãi
+        </Link>
       </section>
 
       {/* 2. Dải USP — 3 cam kết bán hàng */}
@@ -123,6 +121,12 @@ export default async function Home() {
             <h2 className="text-sm font-bold uppercase text-white sm:text-base">
               ⚡ Flash Sale — Giảm sâu
             </h2>
+            <Link
+              href="/khuyen-mai"
+              className="text-xs font-semibold text-white hover:underline"
+            >
+              Xem tất cả →
+            </Link>
           </div>
           <LuoiSanPham products={flashSale} />
         </section>
@@ -178,12 +182,13 @@ export default async function Home() {
           </h2>
           <div className="flex gap-2 overflow-x-auto pb-2">
             {brands.map((b) => (
-              <span
+              <Link
                 key={b.id}
-                className="shrink-0 whitespace-nowrap rounded-full border border-zinc-200 bg-white px-4 py-1.5 text-sm text-zinc-700"
+                href={`/tim-kiem?q=${encodeURIComponent(b.name)}`}
+                className="shrink-0 whitespace-nowrap rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm text-zinc-700 hover:border-teal-700 hover:text-teal-700"
               >
                 {b.name}
-              </span>
+              </Link>
             ))}
           </div>
         </section>

@@ -1,9 +1,11 @@
 import Link from 'next/link';
 import { getSettingsSafe } from '@/lib/api';
+import { hotlineOf, telHref } from '@/lib/contact';
 
 // Footer đậm 4 cột — nền zinc-800 chữ zinc-300, dòng copyright nền zinc-900.
 export default async function Footer() {
   const s = await getSettingsSafe();
+  const hotline = hotlineOf(s);
 
   return (
     <footer className="mt-12 bg-zinc-800 text-zinc-300">
@@ -27,12 +29,15 @@ export default async function Footer() {
 
         {/* Cột 2: chăm sóc khách hàng */}
         <div>
-          <h4 className="text-sm font-semibold uppercase text-white">
+          <h2 className="text-sm font-semibold uppercase text-white">
             Chăm sóc khách hàng
-          </h4>
+          </h2>
           <ul className="mt-3 space-y-2 text-sm">
             <li>
-              <Link href="/" className="hover:text-white hover:underline">
+              <Link
+                href="/gioi-thieu"
+                className="hover:text-white hover:underline"
+              >
                 Giới thiệu
               </Link>
             </li>
@@ -54,10 +59,18 @@ export default async function Footer() {
             </li>
             <li>
               <Link
-                href="/thanh-toan"
+                href="/huong-dan-thanh-toan"
                 className="hover:text-white hover:underline"
               >
-                Thanh toán
+                Hướng dẫn thanh toán
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/khuyen-mai"
+                className="hover:text-white hover:underline"
+              >
+                Khuyến mãi
               </Link>
             </li>
           </ul>
@@ -65,9 +78,9 @@ export default async function Footer() {
 
         {/* Cột 3: chính sách */}
         <div>
-          <h4 className="text-sm font-semibold uppercase text-white">
+          <h2 className="text-sm font-semibold uppercase text-white">
             Chính sách
-          </h4>
+          </h2>
           <ul className="mt-3 space-y-2 text-sm">
             <li>Giao hàng toàn quốc</li>
             <li>Đổi trả trong 7 ngày</li>
@@ -83,16 +96,19 @@ export default async function Footer() {
 
         {/* Cột 4: tổng đài hỗ trợ */}
         <div>
-          <h4 className="text-sm font-semibold uppercase text-white">
+          <h2 className="text-sm font-semibold uppercase text-white">
             Tổng đài hỗ trợ
-          </h4>
+          </h2>
           <ul className="mt-3 space-y-2 text-sm">
-            {s.hotline_hcm && (
+            {hotline && (
               <li>
                 Hotline:{' '}
-                <span className="text-lg font-bold text-white">
-                  {s.hotline_hcm}
-                </span>
+                <a
+                  href={telHref(hotline)}
+                  className="text-lg font-bold text-white hover:underline"
+                >
+                  {hotline}
+                </a>
               </li>
             )}
             <li>Email: swephuthovietnam@gmail.com</li>

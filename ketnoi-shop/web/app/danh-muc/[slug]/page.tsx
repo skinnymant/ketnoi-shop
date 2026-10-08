@@ -6,8 +6,6 @@ import ApiError from '@/components/ApiError';
 import type { CategoryNode, ProductListResponse } from '@/lib/types';
 import type { Metadata } from 'next';
 
-export const dynamic = 'force-dynamic';
-
 export async function generateMetadata({
   params,
 }: {
@@ -115,7 +113,7 @@ export default async function CategoryPage({
   return (
     <div className="mx-auto max-w-7xl px-4 py-6">
       {/* Breadcrumb */}
-      <nav className="mb-4 text-sm text-zinc-500">
+      <nav aria-label="Breadcrumb" className="mb-4 text-sm text-zinc-600">
         <Link href="/" className="hover:text-teal-700">
           Trang chủ
         </Link>

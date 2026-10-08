@@ -19,13 +19,22 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
       <div className="mx-auto max-w-5xl px-4 py-16 text-center">
-        <p className="text-zinc-500">Giỏ hàng của bạn đang trống.</p>
-        <Link
-          href="/"
-          className="mt-4 inline-block rounded-md bg-red-600 px-5 py-2 text-sm font-semibold text-white hover:bg-red-700"
-        >
-          Tiếp tục mua sắm
-        </Link>
+        <h1 className="text-xl font-bold text-zinc-800">Giỏ hàng</h1>
+        <p className="mt-2 text-zinc-600">Giỏ hàng của bạn đang trống.</p>
+        <div className="mt-5 flex flex-wrap justify-center gap-3">
+          <Link
+            href="/khuyen-mai"
+            className="rounded-md bg-red-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-red-700"
+          >
+            Xem sản phẩm khuyến mãi
+          </Link>
+          <Link
+            href="/"
+            className="rounded-md border border-zinc-300 px-5 py-2.5 text-sm font-semibold text-zinc-700 hover:border-teal-700 hover:text-teal-700"
+          >
+            Về trang chủ
+          </Link>
+        </div>
       </div>
     );
   }

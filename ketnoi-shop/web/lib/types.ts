@@ -38,6 +38,9 @@ export interface ProductCard {
   brand: { name: string; slug: string } | null;
   images: ProductImage[];
   _count?: { reviews: number };
+  // Điểm sao thật từ đánh giá đã duyệt (API cũ chưa trả → coi như chưa có)
+  ratingAvg?: number;
+  ratingCount?: number;
 }
 
 export interface ProductListMeta {
@@ -91,4 +94,5 @@ export interface ProductQuery {
   sort?: string;
   page?: number;
   limit?: number;
+  onSale?: boolean; // chỉ sản phẩm đang giảm giá
 }

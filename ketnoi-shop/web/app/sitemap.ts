@@ -1,7 +1,8 @@
 import type { MetadataRoute } from 'next';
 import { SITE_URL, getCategoriesSafe, getProducts } from '@/lib/api';
 
-export const dynamic = 'force-dynamic';
+// Render theo từng request nhưng dữ liệu lấy từ cache (xem TTL trong lib/api.ts)
+export const revalidate = 0;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
