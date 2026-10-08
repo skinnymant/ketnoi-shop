@@ -87,12 +87,6 @@ fi
 
 # ---------- 4. Cloudflare Tunnel ----------
 step 4 "Cloudflare Tunnel ($API_URL)"
-tun_err=$(dc logs --since=10m cloudflared 2>&1 | grep -iE 'ERR|error|unauthorized|failed' | tail -3)
-if [ -n "$tun_err" ]; then
-  bad "Log cloudflared có lỗi gần đây:"
-  echo "$tun_err" | sed 's/^/      /'
-  hint "Kiểm tra CLOUDFLARE_TUNNEL_TOKEN trong .env; token sai → tạo lại ở Zero Trust → Tunnels."
-fi
 body=$(curl -sS -m 15 -w '\n%{http_code}' "$API_URL/health" 2>&1)
 code=$(echo "$body" | tail -1)
 body=$(echo "$body" | sed '$d')
@@ -108,6 +102,15 @@ case "$code" in
        hint "Kiểm tra DNS 'api' trong Cloudflare (phải là bản ghi Tunnel, mây cam)." ;;
   *)   bad "$API_URL/health → HTTP $code: ${body:0:150}" ;;
 esac
+# Chỉ xem log khi tunnel lỗi — lỗi cũ lúc container api đang khởi động lại
+# (connection refused vài giây) không phải vấn đề.
+if [ "$code" != 200 ]; then
+  tun_err=$(dc logs --since=10m cloudflared 2>&1 | grep -iE 'ERR|error|unauthorized|failed' | tail -3)
+  if [ -n "$tun_err" ]; then
+    hint "Log cloudflared gần đây:"
+    echo "$tun_err" | sed 's/^/      /'
+  fi
+fi
 
 # ---------- 5. Vercel (frontend) ----------
 step 5 "Frontend Vercel gọi API ($SITE_URL/kiem-tra-api)"

@@ -12,12 +12,13 @@ import type {
   Settings,
 } from './types';
 
+// trim(): bỏ khoảng trắng/tab lỡ dán thừa khi nhập biến môi trường trên Vercel
 const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '') ?? 'http://localhost:4000';
+  process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/$/, '') || 'http://localhost:4000';
 
 // URL công khai của website (dùng cho SEO: metadata, sitemap, robots)
 export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? 'http://localhost:3000';
+  process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, '') || 'http://localhost:3000';
 
 async function getJSON<T>(path: string): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
