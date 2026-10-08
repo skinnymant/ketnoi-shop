@@ -155,7 +155,7 @@ Mở **http://localhost:3000**
 ## 6b. Trang Quản trị (Admin)
 
 - **Truy cập:** http://localhost:3000/admin/dang-nhap
-- **Tài khoản demo:** `admin@ketnoi.local` / `admin123` (đổi trong `api/.env`: `ADMIN_EMAIL`, `ADMIN_PASSWORD`)
+- **Tài khoản demo (chỉ máy dev, khi `api/.env` không đặt `ADMIN_*`):** `admin@ketnoi.local` / `admin123`. **Website thật không dùng tài khoản này** (đăng nhập sẽ báo 401) — tài khoản admin thật là `ADMIN_EMAIL` / `ADMIN_PASSWORD` trong file `.env` trên laptop; xem/đặt lại bằng `bash scripts/dat-tai-khoan-admin.sh` (docs/04, mục 13).
 - **Chức năng hiện có:**
   - *Đơn hàng* (`/admin/don-hang`): xem toàn bộ đơn, cập nhật trạng thái (Chờ xác nhận → Đã xác nhận → Đang giao → Hoàn thành / Đã hủy), thống kê (tổng đơn, đơn chờ, doanh thu).
   - *Sản phẩm* (`/admin/san-pham`): danh sách, **thêm/sửa/xóa** sản phẩm với form đầy đủ (giá, danh mục, thương hiệu, **upload ảnh** lên MinIO, thông số kỹ thuật).

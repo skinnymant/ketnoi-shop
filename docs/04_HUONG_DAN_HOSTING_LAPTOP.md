@@ -104,6 +104,20 @@ sign in*; tạo monitor miễn phí (UptimeRobot) cho `https://api.swevietnam.co
 > có sẵn trong cache. **Đừng xoá image này** (`docker image prune -a`). Sao lưu phòng khi
 > cần: `docker save minio/minio -o minio-image.tar` (khôi phục: `docker load -i minio-image.tar`).
 
+## 13. Đăng nhập trang quản trị (/admin) báo 401
+Trang quản trị: https://www.swevietnam.com/admin/dang-nhap — tài khoản là `ADMIN_EMAIL` /
+`ADMIN_PASSWORD` trong file `.env` trên laptop (tài khoản demo trong tài liệu dev **không**
+dùng được). Bị 401 thì chạy:
+```bash
+bash scripts/dat-tai-khoan-admin.sh
+```
+Script kiểm tra `.env` (thiếu, còn giá trị mẫu, quá ngắn), kiểm tra container `api` có đang
+dùng đúng giá trị không (sửa `.env` mà chưa tạo lại container vẫn bị 401), rồi cho đặt mật
+khẩu mới (gõ ẩn hoặc tự sinh), sao lưu `.env`, tạo lại container và thử đăng nhập thật.
+
+> Không gửi mật khẩu admin hay địa chỉ máy cho ai qua chat — kể cả trợ lý AI. Người cần
+> sửa dữ liệu thì bạn đăng nhập rồi tự thao tác, hoặc đặt mật khẩu tạm và đổi lại sau.
+
 ---
 
 ## Checklist trước khi mở bán
