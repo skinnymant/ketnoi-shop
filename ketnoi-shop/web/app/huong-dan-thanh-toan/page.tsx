@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { getSettingsSafe } from '@/lib/api';
 import { hotlineOf, telHref } from '@/lib/contact';
 import { formatVND } from '@/lib/format';
-import { getBankTransferDetails } from '@/lib/bank-transfer';
+import { SWE_BANK, SWE_BANK_BRANCH, SWE_BANK_LABEL } from '@/lib/merchant-bank';
 
 export const metadata: Metadata = {
   title: 'Hướng dẫn mua hàng & thanh toán',
@@ -20,7 +20,6 @@ export default async function PaymentGuidePage() {
   const s = await getSettingsSafe();
   const hotline = hotlineOf(s);
   const nguong = Number(s.nguong_freeship) || 2000000;
-  const bankAvailable = Boolean(getBankTransferDetails(s));
 
   const steps = [
     {
@@ -37,9 +36,7 @@ export default async function PaymentGuidePage() {
     },
     {
       title: 'Chọn cách thanh toán và đặt hàng',
-      body: bankAvailable
-        ? 'Chọn COD hoặc chuyển khoản, kiểm tra tổng tiền rồi bấm “Đặt hàng”. Bạn sẽ nhận được mã đơn hàng ngay trên màn hình.'
-        : 'Chọn thanh toán khi nhận hàng (COD), kiểm tra tổng tiền rồi bấm “Đặt hàng”. Bạn sẽ nhận được mã đơn hàng ngay trên màn hình.',
+      body: 'Chọn COD hoặc chuyển khoản VietQR, kiểm tra tổng tiền rồi bấm “Đặt hàng”. Bạn sẽ nhận được mã đơn hàng ngay trên màn hình. Với chuyển khoản, mã QR được tạo theo số tiền và nội dung của đơn đã ghi nhận.',
     },
   ];
 
@@ -90,11 +87,34 @@ export default async function PaymentGuidePage() {
             Chuyển khoản ngân hàng (VietQR)
           </h3>
           <p className="mt-1 text-sm leading-relaxed text-zinc-600">
-            {bankAvailable
-              ? 'Sau khi đặt hàng bằng chuyển khoản, màn hình hiện mã QR kèm thông tin thanh toán đã được xác nhận cho đơn hàng. Kiểm tra người nhận, số tiền và nội dung chuyển khoản trước khi thanh toán. Đơn được xác nhận khi chúng tôi nhận được tiền.'
-              : 'Chuyển khoản hiện chưa khả dụng. Bạn có thể thanh toán khi nhận hàng (COD).'}
+            Sau khi đặt hàng bằng chuyển khoản, quét mã QR trên màn hình bằng ứng
+            dụng ngân hàng. Kiểm tra người nhận, số tiền và nội dung trước khi
+            chuyển. SWE kiểm tra giao dịch và xác nhận sau khi nhận được tiền.
           </p>
         </section>
+      </div>
+
+      <h2 className="mt-8 text-lg font-bold text-zinc-900">Tài khoản nhận thanh toán của SWE</h2>
+      <div className="mt-3 rounded-lg border border-zinc-200 bg-white p-4">
+        <dl className="grid gap-3 text-sm sm:grid-cols-[9rem_1fr] sm:gap-y-2">
+          <dt className="text-zinc-500">Ngân hàng</dt>
+          <dd className="-mt-2 break-words font-semibold text-zinc-800 sm:mt-0">{SWE_BANK_LABEL}</dd>
+          <dt className="text-zinc-500">Chi nhánh</dt>
+          <dd className="-mt-2 break-words text-zinc-800 sm:mt-0">{SWE_BANK_BRANCH}</dd>
+          <dt className="text-zinc-500">Số tài khoản</dt>
+          <dd className="-mt-2 select-text break-words text-lg font-bold tracking-wide text-teal-800 sm:mt-0">{SWE_BANK.accountNumber}</dd>
+          <dt className="text-zinc-500">Chủ tài khoản</dt>
+          <dd className="-mt-2 select-text break-words font-semibold text-zinc-800 sm:mt-0">{SWE_BANK.accountName}</dd>
+        </dl>
+        <p className="mt-4 rounded-md bg-teal-50 p-3 text-sm leading-relaxed text-teal-900">
+          Đặt hàng trước khi chuyển khoản để có mã đơn và tổng tiền chính xác.
+          Nội dung chuyển khoản là mã đơn hàng viết liền, bỏ dấu gạch nối. Nếu mã QR không tải được, bạn có
+          thể sao chép thông tin thanh toán trên màn hình kết quả đặt hàng.
+        </p>
+        <p className="mt-3 text-sm leading-relaxed text-zinc-600">
+          Trạng thái ban đầu là “Chờ xác nhận chuyển khoản”. Nếu đã chuyển tiền,
+          giữ lại biên lai và mã đơn để SWE đối chiếu; không chuyển thêm lần nữa.
+        </p>
       </div>
 
       <h2 className="mt-8 text-lg font-bold text-zinc-900">Phí vận chuyển</h2>

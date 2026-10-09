@@ -4,6 +4,8 @@ Ngày kiểm tra: 09/10/2026 (Asia/Saigon).
 
 ## Ngân hàng
 
+**Cập nhật:** chủ website đã cung cấp tài khoản MB `6605666888` cùng QR. Luồng VietQR mới trên Vercel và thông tin vận hành hiện tại được ghi trong [Thanh toán MB VietQR](07_THANH_TOAN_MB_VIETQR.md). Phần dưới mô tả trạng thái phát hiện trước khi nhận được thông tin thật; cấu hình mẫu ở API riêng vẫn cần được cập nhật khi có quyền quản trị.
+
 API công khai đang trả mã ngân hàng `970436`, số tài khoản `1234567890`, chủ tài khoản `CONG TY KET NOI SHOP`. Mã BIN là Vietcombank theo danh sách ngân hàng VietQR; hai thông tin còn lại trùng dữ liệu mẫu trong seed, chưa được chủ website xác nhận. Tra mã BIN không xác minh quyền sở hữu tài khoản.
 
 Bản sửa frontend chỉ cho chọn chuyển khoản khi cấu hình có `bank_transfer_enabled=true`, đủ thông tin người nhận và không còn thông tin mẫu. Nếu tải cấu hình thất bại, chuyển khoản không khả dụng; COD vẫn hoạt động. QR sau đặt hàng lấy người nhận từ phản hồi của API cho đơn đó, không dùng cấu hình cũ trên trang.

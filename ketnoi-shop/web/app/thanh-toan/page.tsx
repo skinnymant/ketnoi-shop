@@ -1,17 +1,70 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/components/cart/CartContext';
 import { formatVND } from '@/lib/format';
 import { API_BASE } from '@/lib/api';
 import { getToken } from '@/lib/auth-client';
 import { getBankTransferDetails, type BankTransferDetails } from '@/lib/bank-transfer';
+import BankTransferInstructions from '@/components/BankTransferInstructions';
+import { hotlineOf, telHref } from '@/lib/contact';
 
 // Mặc định khi chưa tải được cài đặt; giá trị thật lấy từ settings.nguong_freeship
 // (giống cách API tính phí ship trong orders.service.ts).
 const FREESHIP_DEFAULT = 2000000;
 const SHIPPING_FLAT = 30000;
+const PENDING_CHECKOUT_KEY = 'swe.checkout.pending.v1';
+const LAST_ORDER_KEY = 'swe.checkout.last-order.v1';
+
+type SavedOrderReference = {
+  orderCode: string;
+  paymentMethod: 'COD' | 'BANK_TRANSFER';
+};
+
+function readOrderReference(): SavedOrderReference | null {
+  try {
+    const saved: unknown = JSON.parse(sessionStorage.getItem(LAST_ORDER_KEY) ?? 'null');
+    if (!saved || typeof saved !== 'object' || Array.isArray(saved)) return null;
+    const value = saved as Record<string, unknown>;
+    if (
+      typeof value.orderCode !== 'string' ||
+      !/^[A-Za-z0-9][A-Za-z0-9-]{1,49}$/.test(value.orderCode) ||
+      (value.paymentMethod !== 'COD' && value.paymentMethod !== 'BANK_TRANSFER')
+    ) return null;
+    return { orderCode: value.orderCode, paymentMethod: value.paymentMethod };
+  } catch {
+    return null;
+  }
+}
+
+// This local reference is for support only. Never restore amounts or QR codes.
+function saveOrderReference(order: SavedOrderReference) {
+  try {
+    sessionStorage.setItem(LAST_ORDER_KEY, JSON.stringify(order));
+  } catch {}
+}
+
+function recipientFromResponse(value: unknown): BankTransferDetails | null {
+  if (!value || typeof value !== 'object') return null;
+  const bank = value as Record<string, unknown>;
+  return getBankTransferDetails({
+    bank_transfer_enabled: 'true',
+    bank_code: bank.bankCode,
+    bank_account: bank.accountNumber,
+    bank_name: bank.accountName,
+  });
+}
+
+// Keep only a pending-request marker, never customer details or payment amounts.
+function rememberPending(pending: boolean) {
+  try {
+    if (pending) sessionStorage.setItem(PENDING_CHECKOUT_KEY, 'true');
+    else sessionStorage.removeItem(PENDING_CHECKOUT_KEY);
+  } catch {
+    // The in-memory guard still works if browser storage is unavailable.
+  }
+}
 
 // SĐT Việt Nam: 0xxxxxxxxx (10 số) hoặc +84/84 + 9 số; cho phép gõ kèm dấu cách/chấm
 function normalizePhone(raw: string): string | null {
@@ -61,28 +114,51 @@ export default function CheckoutPage() {
   const [orderCode, setOrderCode] = useState('');
   const [orderTotal, setOrderTotal] = useState('0');
   const [settings, setSettings] = useState<Record<string, string>>({});
+  const [bankDetails, setBankDetails] = useState<BankTransferDetails | null>(null);
   const [orderBank, setOrderBank] = useState<BankTransferDetails | null>(null);
+  const [orderPaymentMethod, setOrderPaymentMethod] = useState<'COD' | 'BANK_TRANSFER'>('COD');
+  const [paymentReviewRequired, setPaymentReviewRequired] = useState(false);
+  const [orderUncertain, setOrderUncertain] = useState(false);
+  const [savedOrderReference, setSavedOrderReference] = useState<SavedOrderReference | null>(null);
+  const submittingRef = useRef(false);
   const [err, setErr] = useState('');
 
   useEffect(() => {
     setTokenState(getToken());
-    fetch(`${API_BASE}/settings`)
+    setSavedOrderReference(readOrderReference());
+    try {
+      if (sessionStorage.getItem(PENDING_CHECKOUT_KEY) === 'true') {
+        submittingRef.current = true;
+        setOrderUncertain(true);
+      }
+    } catch {}
+    const controller = new AbortController();
+    fetch(`${API_BASE}/settings`, { cache: 'no-store', signal: controller.signal })
       .then((r) => {
         if (!r.ok) throw new Error('Settings unavailable');
         return r.json();
       })
       .then(setSettings)
       .catch(() => {});
+    fetch('/api/checkout', { cache: 'no-store', signal: controller.signal })
+      .then((r) => {
+        if (!r.ok) throw new Error('Payment configuration unavailable');
+        return r.json();
+      })
+      .then((data) => setBankDetails(recipientFromResponse(data.bankTransfer)))
+      .catch(() => {});
+    return () => controller.abort();
   }, []);
 
   const freeshipThreshold = Number(settings.nguong_freeship) || FREESHIP_DEFAULT;
   const shippingFee =
     subtotal === 0 || subtotal >= freeshipThreshold ? 0 : SHIPPING_FLAT;
   const total = subtotal + shippingFee;
-  const bankDetails = getBankTransferDetails(settings);
+  const hotline = hotlineOf(settings);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (submittingRef.current || orderUncertain || orderCode) return;
     setErr('');
     if (items.length === 0) {
       setErr('Giỏ hàng trống.');
@@ -98,7 +174,9 @@ export default function CheckoutPage() {
       document.getElementById('co-phone')?.focus();
       return;
     }
+    submittingRef.current = true;
     setPlacing(true);
+    rememberPending(true);
     try {
       const body = {
         receiverName: receiverName.trim(),
@@ -111,7 +189,7 @@ export default function CheckoutPage() {
       };
       // Đăng nhập là tùy chọn: có token thì đơn gắn vào tài khoản,
       // không có thì đặt hàng như khách vãng lai.
-      const res = await fetch(`${API_BASE}/orders`, {
+      const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -121,6 +199,12 @@ export default function CheckoutPage() {
       });
       const data = await res.json();
       if (!res.ok) {
+        if (data.orderUncertain === true) {
+          setOrderUncertain(true);
+        } else {
+          submittingRef.current = false;
+          rememberPending(false);
+        }
         setErr(
           Array.isArray(data.message)
             ? data.message.join(', ')
@@ -128,18 +212,26 @@ export default function CheckoutPage() {
         );
         return;
       }
+      if (
+        typeof data.orderCode !== 'string' || !data.orderCode.trim() ||
+        typeof data.total !== 'string' || !/^\d+$/.test(data.total) ||
+        !Number.isSafeInteger(Number(data.total)) || Number(data.total) <= 0 ||
+        !['COD', 'BANK_TRANSFER'].includes(data.paymentMethod)
+      ) {
+        throw new Error('Incomplete order response');
+      }
       setOrderCode(data.orderCode);
       setOrderTotal(String(data.total));
-      // Use the recipient accepted by the server for this order.
-      setOrderBank(data.bankTransfer ? getBankTransferDetails({
-        bank_transfer_enabled: 'true',
-        bank_code: data.bankTransfer.bankCode,
-        bank_account: data.bankTransfer.accountNumber,
-        bank_name: data.bankTransfer.accountName,
-      }) : null);
+      setOrderPaymentMethod(data.paymentMethod);
+      setPaymentReviewRequired(data.paymentReviewRequired === true);
+      // A payable receipt is built only from the checkout server's response.
+      setOrderBank(recipientFromResponse(data.bankTransfer));
+      saveOrderReference({ orderCode: data.orderCode, paymentMethod: data.paymentMethod });
+      rememberPending(false);
       clear();
     } catch {
-      setErr('Không kết nối được máy chủ.');
+      setOrderUncertain(true);
+      setErr('Chưa nhận được kết quả đặt hàng đầy đủ từ máy chủ.');
     } finally {
       setPlacing(false);
     }
@@ -154,20 +246,9 @@ export default function CheckoutPage() {
   }
 
   if (orderCode) {
-    const isBank = paymentMethod === 'BANK_TRANSFER';
-    const bankCode = orderBank?.bankCode;
-    const bankAccount = orderBank?.accountNumber;
-    const bankName = orderBank?.accountName;
-    const qrUrl =
-      isBank && orderBank
-        ? `https://img.vietqr.io/image/${bankCode}-${bankAccount}-compact2.png?amount=${Math.round(
-            Number(orderTotal),
-          )}&addInfo=${encodeURIComponent(orderCode)}&accountName=${encodeURIComponent(
-            bankName ?? '',
-          )}`
-        : '';
+    const isBank = orderPaymentMethod === 'BANK_TRANSFER';
     return (
-      <div className="mx-auto max-w-md px-4 py-12 text-center">
+      <div className="mx-auto max-w-lg px-4 py-10 text-center">
         <div className="text-3xl">✓</div>
         <h1 className="mt-2 text-xl font-bold text-zinc-800">
           Đặt hàng thành công!
@@ -180,41 +261,23 @@ export default function CheckoutPage() {
           Tổng tiền: <span className="font-semibold">{formatVND(orderTotal)}</span>
         </p>
 
-        {isBank && orderBank ? (
-          <div className="mt-5 rounded-lg bg-white p-4 text-left ring-1 ring-zinc-200">
-            <h2 className="mb-2 text-center font-semibold text-zinc-800">
-              Chuyển khoản ngân hàng
-            </h2>
-            {qrUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={qrUrl} alt="VietQR" className="mx-auto h-56 w-56" />
-            )}
-            <ul className="mt-3 space-y-1 text-sm text-zinc-600">
-              <li>
-                Chủ tài khoản: <b>{bankName}</b>
-              </li>
-              <li>
-                Số tài khoản: <b>{bankAccount}</b>
-              </li>
-              <li>
-                Số tiền: <b>{formatVND(orderTotal)}</b>
-              </li>
-              <li>
-                Nội dung: <b>{orderCode}</b>
-              </li>
-            </ul>
-            <p className="mt-2 text-xs text-zinc-400">
-              Quét mã QR bằng app ngân hàng để thanh toán. Đơn sẽ được xác nhận
-              sau khi nhận được tiền.
-            </p>
-          </div>
-        ) : isBank ? (
+        {isBank && orderBank && !paymentReviewRequired ? (
+          <BankTransferInstructions bank={orderBank} total={orderTotal} orderCode={orderCode} />
+        ) : isBank || paymentReviewRequired ? (
           <p className="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
-            Vui lòng chờ SWE xác nhận thông tin thanh toán trước khi chuyển khoản.
+            Đơn đã được ghi nhận. Vui lòng liên hệ SWE với mã đơn ở trên và chờ
+            xác nhận thông tin thanh toán trước khi chuyển khoản. Không cần đặt lại đơn.
           </p>
         ) : (
           <p className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">
             Thanh toán khi nhận hàng (COD) — shipper thu tiền khi giao.
+          </p>
+        )}
+
+        {hotline && (
+          <p className="mt-4 text-sm text-zinc-600">
+            Hỗ trợ đơn hàng:{' '}
+            <a href={telHref(hotline)} className="font-semibold text-teal-700 underline">{hotline}</a>
           </p>
         )}
 
@@ -224,6 +287,55 @@ export default function CheckoutPage() {
         >
           Về trang chủ
         </Link>
+      </div>
+    );
+  }
+
+  // The server receipt above takes priority. A new cart must always remain usable.
+  if (items.length === 0 && savedOrderReference && !orderUncertain) {
+    return (
+      <div className="mx-auto max-w-lg px-4 py-10 text-center">
+        <h1 className="text-xl font-bold text-zinc-900">Thông tin đơn hàng đã lưu</h1>
+        <p className="mt-3 text-sm text-zinc-600">
+          Mã đơn gần nhất trong phiên này:{' '}
+          <span className="select-text break-words font-semibold text-red-600">{savedOrderReference.orderCode}</span>
+        </p>
+        <p className="mt-2 text-sm text-zinc-600">
+          Hình thức đã chọn: {savedOrderReference.paymentMethod === 'BANK_TRANSFER' ? 'Chuyển khoản ngân hàng' : 'Thanh toán khi nhận hàng (COD)'}.
+        </p>
+        <div className="mt-5 rounded-lg bg-amber-50 p-4 text-left text-sm leading-relaxed text-amber-900">
+          <p>
+            Vui lòng cung cấp mã đơn trên khi liên hệ SWE để kiểm tra đơn và thông tin
+            thanh toán. Thông tin lưu trên thiết bị chưa xác nhận đã nhận được tiền.
+          </p>
+          <p className="mt-2 font-semibold">
+            Nếu đã chuyển khoản, không chuyển thêm lần nữa; giữ lại biên lai để đối chiếu.
+          </p>
+        </div>
+        {hotline ? (
+          <a href={telHref(hotline)} className="mt-5 inline-block font-semibold text-teal-700 underline">
+            Gọi SWE: {hotline}
+          </a>
+        ) : (
+          <Link href="/gioi-thieu" className="mt-5 inline-block font-semibold text-teal-700 underline">
+            Liên hệ SWE
+          </Link>
+        )}
+        <div className="mt-6">
+          <Link href="/" className="inline-block rounded-md bg-red-600 px-5 py-3 text-sm font-semibold text-white hover:bg-red-700">
+            Tiếp tục mua sắm
+          </Link>
+        </div>
+        <button
+          type="button"
+          className="mt-3 min-h-11 text-sm text-zinc-500 underline"
+          onClick={() => {
+            try { sessionStorage.removeItem(LAST_ORDER_KEY); } catch {}
+            setSavedOrderReference(null);
+          }}
+        >
+          Đóng thông tin đã lưu
+        </button>
       </div>
     );
   }
@@ -307,7 +419,7 @@ export default function CheckoutPage() {
             />
           </Field>
 
-          <fieldset className="rounded-md border border-zinc-200 p-3">
+          <fieldset disabled={placing || orderUncertain} className="rounded-md border border-zinc-200 p-3">
             <legend className="px-1 text-sm font-medium text-zinc-700">
               Phương thức thanh toán
             </legend>
@@ -344,6 +456,36 @@ export default function CheckoutPage() {
               {err}
             </p>
           )}
+          {orderUncertain && (
+            <div role="alert" className="rounded-md bg-amber-50 p-3 text-sm leading-relaxed text-amber-900">
+              <p className="font-semibold">Cần kiểm tra đơn hàng trước khi đặt lại</p>
+              <p className="mt-1">
+                Yêu cầu trước có thể đã được ghi nhận. Vui lòng liên hệ SWE để kiểm tra,
+                tránh tạo hai đơn hoặc chuyển tiền hai lần.
+              </p>
+              {hotline ? (
+                <a href={telHref(hotline)} className="mt-2 inline-block font-semibold underline">
+                  Gọi SWE: {hotline}
+                </a>
+              ) : (
+                <Link href="/gioi-thieu" className="mt-2 inline-block font-semibold underline">Liên hệ SWE</Link>
+              )}
+              <label className="mt-3 flex items-start gap-2">
+                <input
+                  type="checkbox"
+                  className="mt-1 h-4 w-4 shrink-0 accent-teal-700"
+                  onChange={(e) => {
+                    if (!e.target.checked) return;
+                    rememberPending(false);
+                    submittingRef.current = false;
+                    setOrderUncertain(false);
+                    setErr('');
+                  }}
+                />
+                SWE đã xác nhận chưa có đơn; tôi muốn đặt lại.
+              </label>
+            </div>
+          )}
 
           {/* Tổng tiền nhắc lại ngay trên nút đặt hàng */}
           <div className="flex items-baseline justify-between border-t border-zinc-200 pt-3">
@@ -352,10 +494,10 @@ export default function CheckoutPage() {
           </div>
           <button
             type="submit"
-            disabled={placing || items.length === 0}
+            disabled={placing || orderUncertain || items.length === 0}
             className="h-12 w-full rounded-md bg-red-600 text-base font-semibold text-white hover:bg-red-700 disabled:opacity-60"
           >
-            {placing ? 'Đang đặt hàng…' : 'Đặt hàng'}
+            {placing ? 'Đang đặt hàng…' : orderUncertain ? 'Chờ kiểm tra đơn hàng' : 'Đặt hàng'}
           </button>
         </form>
 
