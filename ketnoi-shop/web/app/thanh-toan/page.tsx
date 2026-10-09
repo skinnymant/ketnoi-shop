@@ -6,6 +6,7 @@ import { useCart } from '@/components/cart/CartContext';
 import { formatVND } from '@/lib/format';
 import { API_BASE } from '@/lib/api';
 import { getToken } from '@/lib/auth-client';
+import { getBankTransferDetails, type BankTransferDetails } from '@/lib/bank-transfer';
 
 const FREESHIP_THRESHOLD = 2000000;
 const SHIPPING_FLAT = 30000;
@@ -25,12 +26,16 @@ export default function CheckoutPage() {
   const [orderCode, setOrderCode] = useState('');
   const [orderTotal, setOrderTotal] = useState('0');
   const [settings, setSettings] = useState<Record<string, string>>({});
+  const [orderBank, setOrderBank] = useState<BankTransferDetails | null>(null);
   const [err, setErr] = useState('');
 
   useEffect(() => {
     setTokenState(getToken());
     fetch(`${API_BASE}/settings`)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error('Settings unavailable');
+        return r.json();
+      })
       .then(setSettings)
       .catch(() => {});
   }, []);
@@ -38,12 +43,17 @@ export default function CheckoutPage() {
   const shippingFee =
     subtotal === 0 || subtotal >= FREESHIP_THRESHOLD ? 0 : SHIPPING_FLAT;
   const total = subtotal + shippingFee;
+  const bankDetails = getBankTransferDetails(settings);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setErr('');
     if (items.length === 0) {
       setErr('Giỏ hàng trống.');
+      return;
+    }
+    if (paymentMethod === 'BANK_TRANSFER' && !bankDetails) {
+      setErr('Chuyển khoản hiện chưa khả dụng. Vui lòng chọn thanh toán khi nhận hàng.');
       return;
     }
     setPlacing(true);
@@ -78,6 +88,13 @@ export default function CheckoutPage() {
       }
       setOrderCode(data.orderCode);
       setOrderTotal(String(data.total));
+      // Use the recipient accepted by the server for this order.
+      setOrderBank(data.bankTransfer ? getBankTransferDetails({
+        bank_transfer_enabled: 'true',
+        bank_code: data.bankTransfer.bankCode,
+        bank_account: data.bankTransfer.accountNumber,
+        bank_name: data.bankTransfer.accountName,
+      }) : null);
       clear();
     } catch {
       setErr('Không kết nối được máy chủ.');
@@ -96,11 +113,11 @@ export default function CheckoutPage() {
 
   if (orderCode) {
     const isBank = paymentMethod === 'BANK_TRANSFER';
-    const bankCode = settings.bank_code;
-    const bankAccount = settings.bank_account;
-    const bankName = settings.bank_name;
+    const bankCode = orderBank?.bankCode;
+    const bankAccount = orderBank?.accountNumber;
+    const bankName = orderBank?.accountName;
     const qrUrl =
-      isBank && bankCode && bankAccount
+      isBank && orderBank
         ? `https://img.vietqr.io/image/${bankCode}-${bankAccount}-compact2.png?amount=${Math.round(
             Number(orderTotal),
           )}&addInfo=${encodeURIComponent(orderCode)}&accountName=${encodeURIComponent(
@@ -121,7 +138,7 @@ export default function CheckoutPage() {
           Tổng tiền: <span className="font-semibold">{formatVND(orderTotal)}</span>
         </p>
 
-        {isBank ? (
+        {isBank && orderBank ? (
           <div className="mt-5 rounded-lg bg-white p-4 text-left ring-1 ring-zinc-200">
             <h2 className="mb-2 text-center font-semibold text-zinc-800">
               Chuyển khoản ngân hàng
@@ -149,6 +166,10 @@ export default function CheckoutPage() {
               sau khi nhận được tiền.
             </p>
           </div>
+        ) : isBank ? (
+          <p className="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
+            Vui lòng chờ SWE xác nhận thông tin thanh toán trước khi chuyển khoản.
+          </p>
         ) : (
           <p className="mt-4 rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">
             Thanh toán khi nhận hàng (COD) — shipper thu tiền khi giao.
@@ -239,10 +260,16 @@ export default function CheckoutPage() {
                 type="radio"
                 name="pm"
                 checked={paymentMethod === 'BANK_TRANSFER'}
+                disabled={!bankDetails}
                 onChange={() => setPaymentMethod('BANK_TRANSFER')}
               />
               Chuyển khoản ngân hàng (VietQR)
             </label>
+            {!bankDetails && (
+              <p className="mt-1 text-xs text-zinc-500">
+                Chuyển khoản hiện chưa khả dụng. Bạn có thể thanh toán khi nhận hàng.
+              </p>
+            )}
           </div>
 
           {err && <p className="text-sm text-red-600">{err}</p>}

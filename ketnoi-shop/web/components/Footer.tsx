@@ -71,7 +71,7 @@ export default async function Footer() {
           <ul className="mt-3 space-y-2 text-sm">
             <li>Giao hàng toàn quốc</li>
             <li>Đổi trả trong 7 ngày</li>
-            <li>Bảo hành chính hãng</li>
+            <li>Bảo hành theo từng sản phẩm</li>
             {s.nguong_freeship && (
               <li>
                 Freeship từ{' '}

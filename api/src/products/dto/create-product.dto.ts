@@ -15,10 +15,12 @@ export class ProductImageDto {
   @IsString()
   url: string;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   alt?: string;
 
-  @IsOptional() @IsInt()
+  @IsOptional()
+  @IsInt()
   position?: number;
 }
 
@@ -32,7 +34,8 @@ export class ProductSpecDto {
   @MinLength(1)
   specValue: string;
 
-  @IsOptional() @IsInt()
+  @IsOptional()
+  @IsInt()
   position?: number;
 }
 
@@ -49,46 +52,66 @@ export class CreateProductDto {
   @MinLength(2)
   sku: string; // mã hàng nội bộ, duy nhất
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   description?: string;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   shortDesc?: string;
 
-  @Type(() => Number) @IsInt() @Min(0)
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
   price: number; // giá gốc (VND, số nguyên)
 
-  @IsOptional() @Type(() => Number) @IsInt() @Min(0)
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
   salePrice?: number; // giá bán sau giảm
 
-  @IsOptional() @Type(() => Number) @IsInt() @Min(0)
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
   soldCount?: number;
 
-  @IsOptional() @IsBoolean()
+  @IsOptional()
+  @IsBoolean()
   isActive?: boolean;
 
-  @IsOptional() @IsBoolean()
+  @IsOptional()
+  @IsBoolean()
   isFeatured?: boolean;
 
-  @IsOptional() @IsBoolean()
+  @IsOptional()
+  @IsBoolean()
   freeShip?: boolean;
 
-  @IsOptional() @Type(() => Number) @IsInt() @Min(0)
-  warrantyMonths?: number;
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  warrantyMonths?: number | null; // null = chưa xác nhận; 0 = không bảo hành
 
   @IsString()
   categoryId: string; // bắt buộc: sản phẩm phải thuộc 1 danh mục
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   brandId?: string;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   supplierId?: string;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   seoTitle?: string;
 
-  @IsOptional() @IsString()
+  @IsOptional()
+  @IsString()
   seoDesc?: string;
 
   // Mảng ảnh — validate từng phần tử

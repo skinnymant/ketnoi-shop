@@ -8,6 +8,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { QueryProductDto } from './dto/query-product.dto';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { withWarrantySpec } from './product-warranty';
 
 @Injectable()
 export class ProductsService {
@@ -30,7 +31,10 @@ export class ProductsService {
       if (!cat) throw new NotFoundException('Danh mục không tồn tại');
       const ids = [
         cat.id,
-        ...cat.children.flatMap((c) => [c.id, ...c.children.map((cc) => cc.id)]),
+        ...cat.children.flatMap((c) => [
+          c.id,
+          ...c.children.map((cc) => cc.id),
+        ]),
       ];
       where.categoryId = { in: ids };
     }
@@ -163,9 +167,11 @@ export class ProductsService {
     if (!cat) throw new BadRequestException('categoryId không tồn tại');
 
     const { images, specs, ...rest } = dto;
+    const normalizedSpecs = withWarrantySpec(specs ?? [], dto.warrantyMonths);
     return this.prisma.product.create({
       data: {
         ...rest,
+        warrantyMonths: dto.warrantyMonths ?? null,
         ...(images?.length && {
           images: {
             create: images.map((im, i) => ({
@@ -175,9 +181,9 @@ export class ProductsService {
             })),
           },
         }),
-        ...(specs?.length && {
+        ...(normalizedSpecs.length && {
           specs: {
-            create: specs.map((s, i) => ({
+            create: normalizedSpecs.map((s, i) => ({
               specName: s.specName,
               specValue: s.specValue,
               position: s.position ?? i,
@@ -225,11 +231,21 @@ export class ProductsService {
           });
         }
       }
-      if (specs) {
+      if (specs || dto.warrantyMonths !== undefined) {
+        const product = await tx.product.findUniqueOrThrow({
+          where: { id },
+          select: { warrantyMonths: true, specs: true },
+        });
+        const normalizedSpecs = withWarrantySpec(
+          specs ?? product.specs,
+          dto.warrantyMonths !== undefined
+            ? dto.warrantyMonths
+            : product.warrantyMonths,
+        );
         await tx.productSpec.deleteMany({ where: { productId: id } });
-        if (specs.length) {
+        if (normalizedSpecs.length) {
           await tx.productSpec.createMany({
-            data: specs.map((s, i) => ({
+            data: normalizedSpecs.map((s, i) => ({
               productId: id,
               specName: s.specName,
               specValue: s.specValue,

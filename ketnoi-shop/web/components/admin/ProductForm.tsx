@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { API_BASE, getCategoriesSafe } from '@/lib/api';
 import { getAdminToken } from '@/lib/admin-client';
 import type { CategoryNode, ProductDetail } from '@/lib/types';
+import { isWarrantySpec } from '@/lib/warranty';
 
 interface ImageInput {
   url: string;
@@ -69,13 +70,14 @@ export default function ProductForm({
   const [description, setDescription] = useState(initial?.description ?? '');
   const [freeShip, setFreeShip] = useState(initial?.freeShip ?? false);
   const [warrantyMonths, setWarrantyMonths] = useState(
-    initial?.warrantyMonths ?? 12,
+    initial?.warrantyMonths?.toString() ?? '',
   );
   const [images, setImages] = useState<ImageInput[]>(
     initial?.images?.map((i) => ({ url: i.url, alt: i.alt ?? undefined })) ?? [],
   );
   const [specs, setSpecs] = useState<SpecInput[]>(
-    initial?.specs?.map((s) => ({ specName: s.specName, specValue: s.specValue })) ??
+    initial?.specs?.filter((s) => !isWarrantySpec(s.specName))
+      .map((s) => ({ specName: s.specName, specValue: s.specValue })) ??
       [],
   );
 
@@ -149,14 +151,14 @@ export default function ProductForm({
         shortDesc: shortDesc || undefined,
         description: description || undefined,
         freeShip,
-        warrantyMonths: warrantyMonths ? Number(warrantyMonths) : undefined,
+        warrantyMonths: warrantyMonths === '' ? null : Number(warrantyMonths),
         images: images.map((im, i) => ({
           url: im.url,
           alt: im.alt ?? name,
           position: i,
         })),
         specs: specs
-          .filter((s) => s.specName && s.specValue)
+          .filter((s) => s.specName && s.specValue && !isWarrantySpec(s.specName))
           .map((s, i) => ({ ...s, position: i })),
       };
       const url =
@@ -298,9 +300,15 @@ export default function ProductForm({
               type="number"
               className={input}
               value={warrantyMonths}
-              onChange={(e) => setWarrantyMonths(Number(e.target.value))}
+              onChange={(e) => setWarrantyMonths(e.target.value)}
               min={0}
+              step={1}
+              placeholder="Chưa xác nhận"
+              aria-describedby="warranty-help"
             />
+            <span id="warranty-help" className="mt-1 block text-xs text-zinc-500">
+              Để trống nếu chưa xác nhận; nhập 0 nếu không bảo hành.
+            </span>
           </label>
           <label className="flex items-end gap-2 pb-2 text-sm text-zinc-600">
             <input
@@ -371,6 +379,9 @@ export default function ProductForm({
             </button>
           </div>
           <div className="space-y-2">
+            <p className="text-xs text-zinc-500">
+              Thời hạn bảo hành được lấy từ ô Bảo hành (tháng).
+            </p>
             {specs.map((s, i) => (
               <div key={i} className="flex gap-2">
                 <input

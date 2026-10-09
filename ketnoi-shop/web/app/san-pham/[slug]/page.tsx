@@ -7,6 +7,7 @@ import { formatVND, discountPercent, effectivePrice } from '@/lib/format';
 import type { ProductDetail } from '@/lib/types';
 import type { Metadata } from 'next';
 import { SITE_URL } from '@/lib/api';
+import { formatWarranty, isWarrantySpec } from '@/lib/warranty';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,6 +61,11 @@ export default async function ProductPage({
   const mainImg = product.images?.[0]?.url;
   const totalStock =
     product.inventory?.reduce((s, i) => s + i.quantity, 0) ?? 0;
+  const warranty = formatWarranty(product.warrantyMonths);
+  const specs = [
+    ...product.specs.filter((s) => !isWarrantySpec(s.specName)),
+    { specName: 'Bảo hành', specValue: warranty },
+  ];
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -94,7 +100,7 @@ export default async function ProductPage({
   const camKet = [
     'Hàng chính hãng 100%, đầy đủ hóa đơn',
     'Đổi trả miễn phí trong 7 ngày',
-    `Bảo hành chính hãng ${product.warrantyMonths ?? 12} tháng`,
+    `Bảo hành: ${warranty}`,
     'Giao hàng toàn quốc, kiểm tra trước khi nhận',
   ];
 
@@ -259,14 +265,14 @@ export default async function ProductPage({
             </div>
 
             {/* Thông số kỹ thuật — bảng kẻ sọc */}
-            {product.specs.length > 0 && (
+            {specs.length > 0 && (
               <div className="mt-8">
                 <h2 className="mb-2 border-l-4 border-teal-700 pl-2 font-bold text-zinc-800">
                   Thông số kỹ thuật
                 </h2>
                 <table className="w-full overflow-hidden rounded-lg text-sm">
                   <tbody>
-                    {product.specs.map((s, i) => (
+                    {specs.map((s, i) => (
                       <tr key={i} className="odd:bg-zinc-100">
                         <td className="w-40 px-3 py-2 text-zinc-500">
                           {s.specName}

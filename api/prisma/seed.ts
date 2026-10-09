@@ -15,6 +15,7 @@
 import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
+import { isWarrantySpec, parseWarrantyMonths } from '../src/products/product-warranty';
 
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
@@ -48,13 +49,10 @@ function docModel(thongSo: CapThongSo[]): string | undefined {
 }
 
 // Đọc số tháng bảo hành từ thông số "Bảo hành":
-// "12 Tháng" -> 12, "10 năm" -> 120; thiếu hoặc không đọc được -> 12
-function docBaoHanh(thongSo: CapThongSo[]): number {
-  const dong = thongSo.find(([k]) => k === 'Bảo hành');
-  if (!dong) return 12;
-  const so = parseInt(dong[1], 10);
-  if (isNaN(so)) return 12;
-  return /năm/i.test(dong[1]) ? so * 12 : so;
+// "12 Tháng" -> 12, "10 năm" -> 120; thiếu hoặc không đọc được -> null
+function docBaoHanh(thongSo: CapThongSo[]): number | null {
+  const dong = thongSo.find(([k]) => isWarrantySpec(k));
+  return parseWarrantyMonths(dong?.[1]);
 }
 
 // SKU dự phòng khi sản phẩm không có Model: viết tắt từ slug + số thứ tự
@@ -533,17 +531,19 @@ const SAN_PHAM: SanPhamNguon[] = [
       '<p>Phong Thạnh XTL 130DS dùng sàn lưới thép hàn chắc chắn, thoát nước tốt nên hợp cả môi trường kho lạnh, chợ đầu mối.</p><p>Khung sườn thép dày sản xuất trong nước, bánh xe chịu tải bền bỉ theo thời gian.</p><p>SWE Việt Nam giao hàng chính hãng kèm bảo hành 24 tháng.</p>',
   },
 
-  // ---------------- Thang Nhôm (nhóm đồ nghề cầm tay theo khảo sát) ----------------
+  // ---------------- Dụng cụ cầm tay và vật tư điện ----------------
+  // Các sản phẩm này từng bị nhập nhầm vào Thang Nhôm; catalog chưa có thang.
   {
     ten: 'Kìm tuốt dây 7 trong 1 Milwaukee 48-22-3078',
     thuongHieu: 'Milwaukee',
-    danhMucSlug: 'thang-nhom',
+    danhMucSlug: 'cong-cu-dung-cu',
     giaGoc: 470000,
     giaBan: 390000,
     daBan: 439,
     thongSo: [
       ['Model', '48-22-3078'],
       ['Xuất xứ', 'Trung Quốc'],
+      ['Bảo hành', '12 Tháng'],
     ],
     moTaNgan:
       'Kìm tuốt dây đa năng 7 trong 1: tuốt vỏ, cắt dây, uốn khoen và vặn vít — một cây thay cả túi đồ.',
@@ -553,13 +553,14 @@ const SAN_PHAM: SanPhamNguon[] = [
   {
     ten: 'Kìm tuốt dây điện, tuốt dây cáp Milwaukee 48-22-6109',
     thuongHieu: 'Milwaukee',
-    danhMucSlug: 'thang-nhom',
+    danhMucSlug: 'cong-cu-dung-cu',
     giaGoc: 461000,
     giaBan: null,
     daBan: 5,
     thongSo: [
       ['Model', '48-22-6109'],
       ['Xuất xứ', 'Trung Quốc'],
+      ['Bảo hành', '12 Tháng'],
     ],
     moTaNgan:
       'Kìm chuyên tuốt dây điện và dây cáp, rãnh tuốt định cỡ chuẩn giúp không phạm lõi đồng.',
@@ -569,7 +570,7 @@ const SAN_PHAM: SanPhamNguon[] = [
   {
     ten: 'Bộ 31 tua vít Total TACSD30316',
     thuongHieu: 'Total',
-    danhMucSlug: 'thang-nhom',
+    danhMucSlug: 'cong-cu-dung-cu',
     giaGoc: 104000,
     giaBan: 99000,
     daBan: 19,
@@ -585,7 +586,7 @@ const SAN_PHAM: SanPhamNguon[] = [
   {
     ten: 'Băng keo cao su 3M Temflex 2155',
     thuongHieu: '3M',
-    danhMucSlug: 'thang-nhom',
+    danhMucSlug: 'phu-tung-linh-kien',
     giaGoc: 99000,
     giaBan: 70000,
     daBan: 0,
@@ -601,7 +602,7 @@ const SAN_PHAM: SanPhamNguon[] = [
   {
     ten: 'Kìm đa năng cách điện 1000V Wiha 26708 (180mm)',
     thuongHieu: 'WIHA',
-    danhMucSlug: 'thang-nhom',
+    danhMucSlug: 'cong-cu-dung-cu',
     giaGoc: 500000,
     giaBan: 365000,
     daBan: 3,
@@ -617,7 +618,7 @@ const SAN_PHAM: SanPhamNguon[] = [
   {
     ten: 'Bộ kìm cách điện 3 chi tiết Sata 09-261 (09261)',
     thuongHieu: 'SATA',
-    danhMucSlug: 'thang-nhom',
+    danhMucSlug: 'cong-cu-dung-cu',
     giaGoc: 1784000,
     giaBan: 1250000,
     daBan: 0,
@@ -1048,18 +1049,6 @@ const SAN_PHAM: SanPhamNguon[] = [
   },
 ];
 
-// Chọn slug danh mục cho sản phẩm: riêng nhóm Thang Nhôm, nếu tên là thang
-// thật thì gắn vào danh mục con phù hợp, còn lại gắn danh mục gốc
-function chonSlugDanhMuc(sp: SanPhamNguon): string {
-  if (sp.danhMucSlug !== 'thang-nhom') return sp.danhMucSlug;
-  const ten = sp.ten.toLowerCase();
-  if (!ten.includes('thang')) return 'thang-nhom';
-  if (ten.includes('rút')) return 'thang-nhom-rut';
-  if (ten.includes('ghế')) return 'thang-nhom-ghe';
-  if (ten.includes('chữ a')) return 'thang-nhom-chu-a';
-  return 'thang-nhom';
-}
-
 // ============================== MAIN =================================
 
 async function main() {
@@ -1168,7 +1157,7 @@ async function main() {
     if (skuDaDung.has(sku)) sku = `${sku}-${stt}`;
     skuDaDung.add(sku);
 
-    const idDanhMuc = mapDanhMuc.get(chonSlugDanhMuc(sp));
+    const idDanhMuc = mapDanhMuc.get(sp.danhMucSlug);
     const idThuongHieu = mapThuongHieu.get(sp.thuongHieu);
     if (!idDanhMuc || !idThuongHieu) {
       throw new Error(`Thiếu danh mục/thương hiệu cho sản phẩm: ${sp.ten}`);
@@ -1236,10 +1225,11 @@ async function main() {
       { key: 'hotline_hcm', value: '0865 457 498' },
       { key: 'gio_lam_viec', value: '8H - 21H (T2 - CN)' },
       { key: 'nguong_freeship', value: '2000000' },
-      // Thông tin chuyển khoản (VietQR) — sửa trong Admin/Prisma Studio
-      { key: 'bank_code', value: '970436' }, // BIN Vietcombank
-      { key: 'bank_account', value: '1234567890' },
-      { key: 'bank_name', value: 'CONG TY KET NOI SHOP' },
+      // Chỉ bật chuyển khoản sau khi xác nhận đúng tài khoản nhận tiền.
+      { key: 'bank_transfer_enabled', value: 'false' },
+      { key: 'bank_code', value: '' },
+      { key: 'bank_account', value: '' },
+      { key: 'bank_name', value: '' },
     ],
   });
 

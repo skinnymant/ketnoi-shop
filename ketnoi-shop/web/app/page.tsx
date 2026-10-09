@@ -23,7 +23,7 @@ function tinhPhanTramGiam(p: ProductCardType): number {
 const USP = [
   { icon: '🚚', text: 'Giao hàng toàn quốc' },
   { icon: '✅', text: 'Cam kết chính hãng — đổi trả 7 ngày' },
-  { icon: '🛠️', text: 'Bảo hành 12 tháng' },
+  { icon: '🛠️', text: 'Bảo hành theo từng sản phẩm' },
 ];
 
 // Lưới 5 cột dùng chung cho mọi khu vực sản phẩm
@@ -84,7 +84,7 @@ export default async function Home() {
           CHÍNH HÃNG - GIÁ TỐT
         </h1>
         <p className="mt-3 max-w-2xl text-white/90">
-          Máy móc, thiết bị công nghiệp — bảo hành 12 tháng, giao toàn quốc.
+          Máy móc, thiết bị công nghiệp — bảo hành theo từng sản phẩm, giao toàn quốc.
         </p>
         <a
           href="#ban-chay"

@@ -3,9 +3,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PaymentMethod } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { getBankTransferDetails } from '../settings/bank-transfer';
 
 const SHIPPING_FLAT = 30000; // phí ship mặc định khi chưa đạt ngưỡng freeship
 
@@ -15,6 +15,29 @@ export class OrdersService {
 
   // customerId = null → đơn khách vãng lai (không cần đăng nhập)
   async create(customerId: string | null, dto: CreateOrderDto) {
+    let bankTransfer: ReturnType<typeof getBankTransferDetails> = null;
+    if (dto.paymentMethod === 'BANK_TRANSFER') {
+      const settings = await this.prisma.setting.findMany({
+        where: {
+          key: {
+            in: [
+              'bank_transfer_enabled',
+              'bank_code',
+              'bank_account',
+              'bank_name',
+            ],
+          },
+        },
+      });
+      bankTransfer = getBankTransferDetails(
+        Object.fromEntries(settings.map(({ key, value }) => [key, value])),
+      );
+      if (!bankTransfer) {
+        throw new BadRequestException(
+          'Chuyển khoản hiện chưa khả dụng. Vui lòng chọn thanh toán khi nhận hàng.',
+        );
+      }
+    }
     const ids = dto.items.map((i) => i.productId);
     const products = await this.prisma.product.findMany({
       where: { id: { in: ids }, deletedAt: null, isActive: true },
@@ -56,7 +79,7 @@ export class OrdersService {
     const discount = 0;
     const total = subtotal + shippingFee - discount;
 
-    return this.prisma.order.create({
+    const order = await this.prisma.order.create({
       data: {
         orderCode: this.genOrderCode(),
         customerId,
@@ -72,13 +95,14 @@ export class OrdersService {
         items: { create: orderItems },
         payments: {
           create: {
-            method: (dto.paymentMethod ?? 'COD') as PaymentMethod,
+            method: dto.paymentMethod ?? 'COD',
             amount: total,
           },
         },
       },
       include: { items: true, payments: true },
     });
+    return { ...order, bankTransfer };
   }
 
   findMyOrders(customerId: string) {

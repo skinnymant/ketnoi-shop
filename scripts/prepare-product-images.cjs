@@ -15,6 +15,8 @@ async function main() {
   // --from-research imports the three research batches. Normal runs use the
   // consolidated, reviewed source list committed alongside the images.
   const fromResearch = process.argv.includes('--from-research');
+  const fromAssets = process.argv.includes('--from-assets');
+  if (fromResearch && fromAssets) throw new Error('Choose only one import mode');
   const sources = fromResearch
     ? (await Promise.all(sourceFiles.map(async file => JSON.parse(await fs.readFile(path.join(docsDir,file),'utf8'))))).flat()
     : JSON.parse(await fs.readFile(path.join(docsDir,'sources.json'),'utf8'));
@@ -34,7 +36,7 @@ async function main() {
     const productsDir = path.resolve(publicDir, 'products') + path.sep;
     if (!originalPath.startsWith(productsDir)) throw new Error('Image outside products directory');
     let original;
-    if (fromResearch) {
+    if (fromResearch || fromAssets) {
       original = await fs.readFile(originalPath);
     } else {
       const response = await fetch(source.imageUrl, {signal:AbortSignal.timeout(30000)});
@@ -44,11 +46,15 @@ async function main() {
     const metadata = await sharp(original).metadata();
     if (!metadata.width || !metadata.height || Math.min(metadata.width, metadata.height) < 150) throw new Error(`Image too small: ${product.sku}`);
     // Keep the entire source composition, including branding. No crop or upscaling.
-    const buffer = await sharp(original).rotate().resize({width:1200,height:1200,fit:'inside',withoutEnlargement:true}).webp({quality:88}).toBuffer();
+    // Already reviewed WebP assets must not be recompressed or downloaded again.
+    if (fromAssets && metadata.format !== 'webp') throw new Error(`Expected WebP asset: ${product.sku}`);
+    const buffer = fromAssets ? original : await sharp(original).rotate().resize({width:1200,height:1200,fit:'inside',withoutEnlargement:true}).webp({quality:88}).toBuffer();
     const sha256 = crypto.createHash('sha256').update(buffer).digest('hex');
+    if (fromAssets && source.sha256 !== sha256) throw new Error(`Reviewed asset hash mismatch: ${product.sku}`);
     const basename = product.sku.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
     const url = `/products/${basename}-${sha256.slice(0,10)}.webp`;
-    await fs.writeFile(path.join(publicDir, url.slice(1)), buffer);
+    if (fromAssets && source.localPath !== url) throw new Error(`Reviewed asset filename mismatch: ${product.sku}`);
+    if (!fromAssets) await fs.writeFile(path.join(publicDir, url.slice(1)), buffer);
     const outputMetadata = await sharp(buffer).metadata();
     images[product.sku.trim().toUpperCase()] = {url, alt:source.alt || product.name};
     audited.push({...source,index:product.index,localPath:url,width:outputMetadata.width,height:outputMetadata.height,bytes:buffer.length,sha256});

@@ -134,7 +134,7 @@ model Product {
   isActive    Boolean   @default(true) @map("is_active")
   isFeatured  Boolean   @default(false) @map("is_featured") // sản phẩm nổi bật
   freeShip    Boolean   @default(false) @map("free_ship")
-  warrantyMonths Int?   @map("warranty_months") // bảo hành (tháng)
+  warrantyMonths Int?   @map("warranty_months") // số tháng; null = chưa xác nhận, 0 = không bảo hành
 
   categoryId  String    @map("category_id")
   category    Category  @relation(fields: [categoryId], references: [id])
