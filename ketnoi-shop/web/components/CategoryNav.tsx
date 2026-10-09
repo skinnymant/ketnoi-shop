@@ -63,17 +63,27 @@ export default function CategoryNav({
   );
 }
 
-// Hàng danh mục cuộn ngang cho mobile — giữ hành vi cũ, đổi màu nhấn sang teal.
+// Hàng danh mục cuộn ngang cho mobile/tablet. "Khuyến mãi" đứng đầu (trên
+// mobile không có thanh nav teal); mép phải mờ dần để gợi ý còn cuộn được.
 export function CategoryNavMobile({
   categories,
 }: {
   categories: CategoryNode[];
 }) {
-  if (!categories.length) return null;
-
   return (
-    <nav className="border-t border-zinc-200 bg-white lg:hidden">
-      <ul className="mx-auto flex max-w-7xl overflow-x-auto whitespace-nowrap px-4">
+    <nav
+      aria-label="Danh mục sản phẩm"
+      className="relative border-t border-zinc-200 bg-white lg:hidden"
+    >
+      <ul className="mx-auto flex max-w-7xl overflow-x-auto whitespace-nowrap px-1 [scrollbar-width:none] sm:px-3">
+        <li className="shrink-0">
+          <Link
+            href="/khuyen-mai"
+            className="block px-3 py-2.5 text-sm font-semibold text-red-600"
+          >
+            Khuyến mãi
+          </Link>
+        </li>
         {categories.map((cat) => (
           <li key={cat.id} className="shrink-0">
             <Link
@@ -85,6 +95,10 @@ export function CategoryNavMobile({
           </li>
         ))}
       </ul>
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white"
+      />
     </nav>
   );
 }

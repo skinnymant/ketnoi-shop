@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import type { ProductCard as ProductCardType } from '@/lib/types';
 import { formatVND, discountPercent, effectivePrice } from '@/lib/format';
+import RatingStars from './RatingStars';
 
 // Thẻ sản phẩm dùng chung: badge giảm giá, sao đánh giá + đã bán, giá đỏ nổi bật
 export default function ProductCard({ product }: { product: ProductCardType }) {
@@ -34,7 +35,7 @@ export default function ProductCard({ product }: { product: ProductCardType }) {
           </span>
         )}
         {product.freeShip && (
-          <span className="absolute right-2 top-2 rounded bg-emerald-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+          <span className="absolute right-2 top-2 rounded bg-emerald-700 px-1.5 py-0.5 text-[11px] font-semibold text-white">
             Freeship
           </span>
         )}
@@ -42,7 +43,7 @@ export default function ProductCard({ product }: { product: ProductCardType }) {
 
       <div className="flex flex-1 flex-col gap-1 p-3">
         {product.brand && (
-          <span className="text-[11px] uppercase tracking-wide text-zinc-400">
+          <span className="text-[11px] uppercase tracking-wide text-zinc-500">
             {product.brand.name}
           </span>
         )}
@@ -50,20 +51,22 @@ export default function ProductCard({ product }: { product: ProductCardType }) {
           {product.name}
         </h3>
 
-        {/* Sao đánh giá tĩnh + số đã bán */}
-        <div className="flex items-center gap-1 text-xs">
-          <span className="tracking-tight text-amber-400" aria-hidden>
-            ★★★★★
-          </span>
-          <span className="text-zinc-400">(đã bán {product.soldCount})</span>
-        </div>
+        {/* Sao thật (nếu có đánh giá) + số đã bán (nếu > 0) */}
+        {(!!product.ratingCount || product.soldCount > 0) && (
+          <div className="flex items-center gap-2 text-xs">
+            <RatingStars avg={product.ratingAvg} count={product.ratingCount} />
+            {product.soldCount > 0 && (
+              <span className="text-zinc-500">Đã bán {product.soldCount}</span>
+            )}
+          </div>
+        )}
 
         <div className="mt-auto flex flex-wrap items-baseline gap-x-2">
           <span className="text-base font-bold text-red-600">
             {formatVND(effectivePrice(product.price, product.salePrice))}
           </span>
           {off !== null && (
-            <span className="text-xs text-zinc-400 line-through">
+            <span className="text-xs text-zinc-500 line-through">
               {formatVND(product.price)}
             </span>
           )}

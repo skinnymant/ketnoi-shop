@@ -82,10 +82,14 @@ async function main() {
   if (args.some((arg) => arg !== '--apply')) {
     throw new Error('Unknown argument. Use --help for usage.');
   }
-  require('../api/node_modules/dotenv').config({ quiet: true });
+  // Also supports copying this script into the running API container (/app).
+  const path = require('node:path');
+  const dependencyRoots = [path.resolve(__dirname, '../api'), process.cwd()];
+  const fromApi = (name) => require(require.resolve(name, { paths: dependencyRoots }));
+  fromApi('dotenv').config({ quiet: true });
   if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required.');
-  const { PrismaPg } = require('../api/node_modules/@prisma/adapter-pg');
-  const { PrismaClient } = require('../api/node_modules/@prisma/client');
+  const { PrismaPg } = fromApi('@prisma/adapter-pg');
+  const { PrismaClient } = fromApi('@prisma/client');
   const prisma = new PrismaClient({
     adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
   });

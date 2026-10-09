@@ -30,4 +30,7 @@ export class QueryProductDto {
 
   @IsOptional() @IsIn(['newest', 'price_asc', 'price_desc', 'best_selling'])
   sort?: string = 'newest';
+
+  @IsOptional() @IsIn(['true', 'false'])
+  onSale?: string; // "true" = chỉ sản phẩm đang giảm giá (trang Khuyến mãi)
 }

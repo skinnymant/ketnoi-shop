@@ -44,6 +44,17 @@ node ../scripts/repair-ladder-category.cjs --apply
 
 Không chạy seed để sửa danh mục: seed hiện có bước xóa dữ liệu.
 
+Nếu backend chạy bằng Docker Compose, trên đúng máy backend và tại thư mục gốc repository, có thể dùng kết nối PostgreSQL sẵn có bên trong container:
+
+```sh
+docker compose cp scripts/repair-ladder-category.cjs api:/app/repair-ladder-category.cjs
+docker compose exec -T api node repair-ladder-category.cjs
+# Sau khi đối chiếu danh sách dry-run:
+docker compose exec -T api node repair-ladder-category.cjs --apply
+```
+
+Script không tự chạy khi triển khai và mặc định chỉ đọc. Cần triển khai mã API mới trên đúng máy backend để áp dụng kiểm tra ngân hàng và đồng bộ bảo hành; cập nhật giao diện Vercel không thay thế bước này.
+
 ## Bảo hành
 
 `warrantyMonths` là nguồn thời hạn duy nhất cho thông số và cam kết trên trang chi tiết. Trang chủ/footer dùng câu theo từng sản phẩm, không cam kết chung 12 tháng. Quản trị cho phép để trống khi chưa xác nhận; `0` nghĩa là không bảo hành. API đồng bộ thông số Bảo hành theo trường này khi lưu.
@@ -52,6 +63,6 @@ Audit đọc 54 sản phẩm: 43 sản phẩm có thời hạn rõ trong thông 
 
 ## Giới hạn triển khai backend
 
-API đang hoạt động và trả đúng danh mục. Đăng nhập quản trị bằng cấu hình local bị từ chối HTTP 401. Chưa có địa chỉ/kênh truy cập VPS, nên chưa triển khai mã API hoặc sửa 6 bản ghi danh mục trên dữ liệu thật. Đưa frontend lên Vercel không tự triển khai NestJS/PostgreSQL.
+API đang hoạt động và trả danh mục 54 sản phẩm thật. Đăng nhập quản trị bằng cấu hình `api/.env` bị từ chối HTTP 401; `.env` ở thư mục gốc không có tài khoản quản trị khác. Tài liệu mới mô tả backend chạy trên laptop Ubuntu WSL2/Docker qua Cloudflare Tunnel, nhưng máy Windows hiện tại chưa có WSL/Docker. Chưa có địa chỉ/kênh truy cập máy backend thực tế, nên chưa triển khai mã API hoặc sửa 6 bản ghi danh mục trên dữ liệu thật. Đưa frontend lên Vercel không tự triển khai NestJS/PostgreSQL. Chưa chạy script đặt lại quản trị.
 
 Ảnh và giao diện có thể triển khai độc lập. Chi tiết từng nguồn ảnh và kết quả đối chiếu watermark nằm trong `product-images/sources.json` và `product-images/watermark-audit.json`.

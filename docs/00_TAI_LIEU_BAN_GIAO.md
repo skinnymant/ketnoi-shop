@@ -155,7 +155,7 @@ Mở **http://localhost:3000**
 ## 6b. Trang Quản trị (Admin)
 
 - **Truy cập:** http://localhost:3000/admin/dang-nhap
-- **Tài khoản demo:** `admin@ketnoi.local` / `admin123` (đổi trong `api/.env`: `ADMIN_EMAIL`, `ADMIN_PASSWORD`)
+- **Tài khoản demo (chỉ máy dev, khi `api/.env` không đặt `ADMIN_*`):** `admin@ketnoi.local` / `admin123`. **Website thật không dùng tài khoản này** (đăng nhập sẽ báo 401) — tài khoản admin thật là `ADMIN_EMAIL` / `ADMIN_PASSWORD` trong file `.env` trên laptop; xem/đặt lại bằng `bash scripts/dat-tai-khoan-admin.sh` (docs/04, mục 13).
 - **Chức năng hiện có:**
   - *Đơn hàng* (`/admin/don-hang`): xem toàn bộ đơn, cập nhật trạng thái (Chờ xác nhận → Đã xác nhận → Đang giao → Hoàn thành / Đã hủy), thống kê (tổng đơn, đơn chờ, doanh thu).
   - *Sản phẩm* (`/admin/san-pham`): danh sách, **thêm/sửa/xóa** sản phẩm với form đầy đủ (giá, danh mục, thương hiệu, **upload ảnh** lên MinIO, thông số kỹ thuật).
@@ -175,7 +175,7 @@ Mở **http://localhost:3000**
 | Hiện tượng | Nguyên nhân & cách xử lý |
 |------------|--------------------------|
 | Mở **localhost:3000 không được** | Chưa chạy `npm run dev` trong `ketnoi-shop/web`; hoặc đang cài `npm install`. Xem log terminal. |
-| Trang mở nhưng báo “Không kết nối được API” | Backend chưa chạy (`npm run start:dev` trong `api`) hoặc DB chưa bật. Kiểm tra http://localhost:4000/health |
+| Trang mở nhưng báo “Không kết nối được API” | **Máy dev:** backend chưa chạy (`npm run start:dev` trong `api`) hoặc DB chưa bật — kiểm tra http://localhost:4000/health. **Website thật:** mở `https://www.swevietnam.com/kiem-tra-api` để xem kết luận, rồi chạy `bash scripts/kiem-tra-laptop.sh --fix` trên laptop (xem docs/04 mục 12) |
 | `P1001 Can't reach database` | Docker chưa bật: `docker compose up -d` tại `D:\duan\ketnoi-shop` |
 | Trang sản phẩm trống | Chưa seed: `npx prisma db seed` trong `api` |
 | Lỗi CORS trên trình duyệt | API chỉ cho phép origin `http://localhost:3000` (sửa trong `api/src/main.ts` nếu đổi cổng) |

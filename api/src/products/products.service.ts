@@ -9,6 +9,14 @@ import { QueryProductDto } from './dto/query-product.dto';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { withWarrantySpec } from './product-warranty';
+import {
+  VI_FROM,
+  VI_TO,
+  escapeLike,
+  fuzzyTokenMatch,
+  normalizeVi,
+  searchTokens,
+} from './search-normalize';
 
 @Injectable()
 export class ProductsService {
@@ -51,12 +59,14 @@ export class ProductsService {
       };
     }
 
-    // Tìm kiếm: tên hoặc SKU chứa từ khóa, không phân biệt hoa thường
-    if (q.search) {
-      where.OR = [
-        { name: { contains: q.search, mode: 'insensitive' } },
-        { sku: { contains: q.search, mode: 'insensitive' } },
-      ];
+    // Tìm kiếm: không dấu, nhiều từ, chịu lỗi gõ — xem searchIds()
+    if (q.search?.trim()) {
+      where.id = { in: await this.searchIds(q.search) };
+    }
+
+    // Chỉ sản phẩm đang giảm giá (salePrice < price)
+    if (q.onSale === 'true') {
+      where.AND = [{ salePrice: { lt: this.prisma.product.fields.price } }];
     }
 
     // Lọc theo thông số kỹ thuật: "Điện áp:18V"
@@ -108,10 +118,70 @@ export class ProductsService {
       }),
     ]);
 
+    // Điểm sao thật (chỉ đánh giá đã duyệt) — frontend chỉ hiện sao khi có đánh giá
+    const ratings = data.length
+      ? await this.prisma.review.groupBy({
+          by: ['productId'],
+          where: {
+            productId: { in: data.map((p) => p.id) },
+            status: 'APPROVED',
+          },
+          _avg: { rating: true },
+          _count: { _all: true },
+        })
+      : [];
+    const ratingOf = new Map(ratings.map((r) => [r.productId, r]));
+
     return {
-      data,
+      data: data.map((p) => ({
+        ...p,
+        ratingAvg: ratingOf.get(p.id)?._avg.rating ?? 0,
+        ratingCount: ratingOf.get(p.id)?._count._all ?? 0,
+      })),
       meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
     };
+  }
+
+  // Tìm id sản phẩm khớp từ khóa. Mỗi từ phải xuất hiện trong tên, SKU hoặc
+  // tên thương hiệu — so trên dạng không dấu, nên "may khoan" ra "Máy khoan".
+  // Không có kết quả thì thử khớp gần đúng ("bosh" → Bosch, "makit" → Makita).
+  private async searchIds(query: string): Promise<string[]> {
+    const tokens = searchTokens(query);
+    if (!tokens.length) return [];
+
+    const norm = (col: string) =>
+      Prisma.sql`translate(lower(${Prisma.raw(col)}), ${VI_FROM}, ${VI_TO})`;
+    const conds = tokens.map((t) => {
+      const like = `%${escapeLike(t)}%`;
+      return Prisma.sql`(${norm('p.name')} LIKE ${like}
+        OR ${norm('p.sku')} LIKE ${like}
+        OR ${norm("coalesce(b.name, '')")} LIKE ${like})`;
+    });
+    const rows = await this.prisma.$queryRaw<{ id: string }[]>`
+      SELECT p.id FROM products p
+      LEFT JOIN brands b ON b.id = p.brand_id
+      WHERE p.deleted_at IS NULL AND p.is_active = true
+        AND ${Prisma.join(conds, ' AND ')}`;
+    if (rows.length) return rows.map((r) => r.id);
+
+    // Gần đúng: so từng từ khóa với từng từ trong tên/SKU/thương hiệu
+    const all = await this.prisma.product.findMany({
+      where: { deletedAt: null, isActive: true },
+      select: {
+        id: true,
+        name: true,
+        sku: true,
+        brand: { select: { name: true } },
+      },
+    });
+    return all
+      .filter((p) => {
+        const words = normalizeVi(`${p.name} ${p.sku} ${p.brand?.name ?? ''}`)
+          .split(/[\s()/,]+/)
+          .filter(Boolean);
+        return tokens.every((t) => fuzzyTokenMatch(t, words));
+      })
+      .map((p) => p.id);
   }
 
   // Chi tiết sản phẩm cho trang /san-pham/<slug>

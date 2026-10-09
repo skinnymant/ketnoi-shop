@@ -4,6 +4,7 @@ import "./globals.css";
 import { CartProvider } from "@/components/cart/CartContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import ContactFab from "@/components/ContactFab";
 import { SITE_URL } from "@/lib/api";
 
 const geistSans = Geist({
@@ -15,6 +16,12 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
+// Mọi trang render theo từng request, nhưng dữ liệu API lấy từ cache (TTL trong
+// lib/api.ts). Nhờ vậy trang luôn nhanh và vẫn hiện sản phẩm khi API tạm tắt.
+// Không dựng trang tĩnh (ISR): khi làm mới đúng lúc API lỗi, trang tĩnh sẽ bị
+// dựng lại với 0 sản phẩm và giữ nguyên như vậy tới lần làm mới sau.
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -42,6 +49,7 @@ export default function RootLayout({
           <Header />
           <main className="flex-1">{children}</main>
           <Footer />
+          <ContactFab />
         </CartProvider>
       </body>
     </html>

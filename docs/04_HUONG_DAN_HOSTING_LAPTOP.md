@@ -78,6 +78,46 @@ Mở trình duyệt: `https://api.swevietnam.com/products?limit=1` → thấy JS
 Sau seed, sản phẩm dùng ảnh placeholder. Muốn có bộ ảnh thương hiệu SWE,
 chạy lại script sinh ảnh trỏ vào API laptop (cần Python + Pillow). Nhờ trợ lý hỗ trợ.
 
+## 12. Khi website báo "Không kết nối được tới API"
+1. Mở **https://www.swevietnam.com/kiem-tra-api** — server Vercel tự gọi thử API và
+   ghi **kết luận** (`ketLuan`) chỉ ra mắt xích bị đứt: laptop/tunnel, container api,
+   Cloudflare chặn bot, hay thiếu `NEXT_PUBLIC_API_URL` trên Vercel.
+2. Trên laptop (Ubuntu WSL), tại thư mục repo:
+   ```bash
+   bash scripts/kiem-tra-laptop.sh --fix
+   ```
+   Script kiểm tra lần lượt Docker → container → API → tunnel → Vercel, tự khởi động
+   lại container bị dừng (`--fix`) và in gợi ý sửa ở mỗi mục ✘.
+3. Sửa theo gợi ý ở mục ✘ **đầu tiên**, rồi chạy lại script tới khi tất cả ✔.
+4. Nếu `/health` trả `{"ok":true,"service":"ketnoi-api",...}` và `/products` báo
+   `Cannot GET` → cổng 4000 đang chạy **nhầm API của project khác**. Chạy:
+   ```bash
+   bash scripts/sua-api.sh
+   ```
+   Script liệt kê container, hỏi trước khi dừng container lạ (không xoá dữ liệu),
+   build + chạy lại đúng API và tunnel, rồi kiểm tra lại toàn bộ.
+
+Phòng ngừa: bật Docker Desktop → Settings → General → *Start Docker Desktop when you
+sign in*; tạo monitor miễn phí (UptimeRobot) cho `https://api.swevietnam.com/health`.
+
+> ⚠️ Image `minio/minio` đã bị gỡ khỏi Docker Hub — laptop hiện chạy được nhờ image
+> có sẵn trong cache. **Đừng xoá image này** (`docker image prune -a`). Sao lưu phòng khi
+> cần: `docker save minio/minio -o minio-image.tar` (khôi phục: `docker load -i minio-image.tar`).
+
+## 13. Đăng nhập trang quản trị (/admin) báo 401
+Trang quản trị: https://www.swevietnam.com/admin/dang-nhap — tài khoản là `ADMIN_EMAIL` /
+`ADMIN_PASSWORD` trong file `.env` trên laptop (tài khoản demo trong tài liệu dev **không**
+dùng được). Bị 401 thì chạy:
+```bash
+bash scripts/dat-tai-khoan-admin.sh
+```
+Script kiểm tra `.env` (thiếu, còn giá trị mẫu, quá ngắn), kiểm tra container `api` có đang
+dùng đúng giá trị không (sửa `.env` mà chưa tạo lại container vẫn bị 401), rồi cho đặt mật
+khẩu mới (gõ ẩn hoặc tự sinh), sao lưu `.env`, tạo lại container và thử đăng nhập thật.
+
+> Không gửi mật khẩu admin hay địa chỉ máy cho ai qua chat — kể cả trợ lý AI. Người cần
+> sửa dữ liệu thì bạn đăng nhập rồi tự thao tác, hoặc đặt mật khẩu tạm và đổi lại sau.
+
 ---
 
 ## Checklist trước khi mở bán

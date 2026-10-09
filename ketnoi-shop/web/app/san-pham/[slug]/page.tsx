@@ -1,15 +1,16 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getProduct } from '@/lib/api';
+import { getProduct, getSettingsSafe } from '@/lib/api';
+import { hotlineOf, telHref } from '@/lib/contact';
 import AddToCartButton from '@/components/cart/AddToCartButton';
+import RatingStars from '@/components/RatingStars';
+import StickyBuyBar from '@/components/cart/StickyBuyBar';
 import { formatVND, discountPercent, effectivePrice } from '@/lib/format';
 import type { ProductDetail } from '@/lib/types';
 import type { Metadata } from 'next';
 import { SITE_URL } from '@/lib/api';
 import { formatWarranty, isWarrantySpec } from '@/lib/warranty';
-
-export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({
   params,
@@ -55,6 +56,7 @@ export default async function ProductPage({
     product = null;
   }
   if (!product) notFound();
+  const hotline = hotlineOf(await getSettingsSafe());
 
   const off = discountPercent(product.price, product.salePrice);
   const priceNow = effectivePrice(product.price, product.salePrice);
@@ -66,6 +68,13 @@ export default async function ProductPage({
     ...product.specs.filter((s) => !isWarrantySpec(s.specName)),
     { specName: 'Bảo hành', specValue: warranty },
   ];
+  const cartProduct = {
+    id: product.id,
+    slug: product.slug,
+    name: product.name,
+    price: priceNow,
+    image: mainImg,
+  };
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -111,7 +120,7 @@ export default async function ProductPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       {/* Breadcrumb */}
-      <nav className="mb-4 text-sm text-zinc-500">
+      <nav aria-label="Breadcrumb" className="mb-4 text-sm text-zinc-600">
         <Link href="/" className="hover:text-teal-700">
           Trang chủ
         </Link>
@@ -194,16 +203,25 @@ export default async function ProductPage({
                 </>
               )}
               <span>Mã: {product.sku}</span>
-              <span className="text-zinc-300">|</span>
-              <span className="tracking-tight text-amber-400" aria-hidden>
-                ★★★★★
-              </span>
-              <span>Đã bán {product.soldCount}</span>
               {product.ratingCount > 0 && (
-                <span className="text-zinc-400">
-                  ({product.ratingAvg.toFixed(1)}/5 · {product.ratingCount} đánh
-                  giá)
-                </span>
+                <>
+                  <span className="text-zinc-300">|</span>
+                  <RatingStars
+                    avg={product.ratingAvg}
+                    count={product.ratingCount}
+                    showCount={false}
+                  />
+                  <span>
+                    {product.ratingAvg.toFixed(1)}/5 · {product.ratingCount} đánh
+                    giá
+                  </span>
+                </>
+              )}
+              {product.soldCount > 0 && (
+                <>
+                  <span className="text-zinc-300">|</span>
+                  <span>Đã bán {product.soldCount}</span>
+                </>
               )}
             </div>
 
@@ -252,16 +270,19 @@ export default async function ProductPage({
               ))}
             </ul>
 
-            <div className="mt-6">
-              <AddToCartButton
-                product={{
-                  id: product.id,
-                  slug: product.slug,
-                  name: product.name,
-                  price: priceNow,
-                  image: mainImg,
-                }}
-              />
+            <div id="buy-box" className="mt-6">
+              <AddToCartButton product={cartProduct} />
+              {hotline && (
+                <p className="mt-3 text-sm text-zinc-600">
+                  Cần tư vấn chọn máy, báo giá số lượng lớn? Gọi{' '}
+                  <a
+                    href={telHref(hotline)}
+                    className="font-bold text-teal-700 underline underline-offset-2"
+                  >
+                    {hotline}
+                  </a>
+                </p>
+              )}
             </div>
 
             {/* Thông số kỹ thuật — bảng kẻ sọc */}
@@ -331,6 +352,7 @@ export default async function ProductPage({
           </ul>
         </div>
       )}
+      <StickyBuyBar product={cartProduct} />
     </div>
   );
 }

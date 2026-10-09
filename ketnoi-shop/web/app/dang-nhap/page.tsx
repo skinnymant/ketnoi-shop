@@ -5,6 +5,16 @@ import { useRouter } from 'next/navigation';
 import { API_BASE } from '@/lib/api';
 import { setToken } from '@/lib/auth-client';
 
+// Sau đăng nhập quay về trang khách đang ở (?next=/thanh-toan).
+// Chỉ nhận đường dẫn nội bộ để tránh bị lợi dụng chuyển hướng sang web lạ.
+function nextPath(): string {
+  const n = new URLSearchParams(window.location.search).get('next') ?? '';
+  return n.startsWith('/') && !n.startsWith('//') ? n : '/';
+}
+
+const inputCls =
+  'w-full rounded-md border border-zinc-300 px-3 py-2.5 text-base text-zinc-900 outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 sm:text-sm';
+
 export default function LoginPage() {
   const router = useRouter();
   const [mode, setMode] = useState<'login' | 'register'>('login');
@@ -47,9 +57,9 @@ export default function LoginPage() {
         return;
       }
       setToken(data.accessToken);
-      router.push('/thanh-toan');
+      router.push(nextPath());
     } catch {
-      setErr('Không kết nối được máy chủ. API đã chạy chưa?');
+      setErr('Không kết nối được máy chủ, vui lòng thử lại sau ít phút.');
     } finally {
       setLoading(false);
     }
@@ -58,12 +68,15 @@ export default function LoginPage() {
   return (
     <div className="mx-auto max-w-md px-4 py-10">
       <div className="rounded-xl bg-white p-6 ring-1 ring-zinc-200">
+        <h1 className="mb-4 text-xl font-bold text-zinc-900">
+          {mode === 'login' ? 'Đăng nhập' : 'Tạo tài khoản'}
+        </h1>
         <div className="mb-5 flex gap-2 rounded-md bg-zinc-100 p-1 text-sm font-medium">
           <button
             type="button"
             onClick={() => setMode('login')}
-            className={`flex-1 rounded py-1.5 ${
-              mode === 'login' ? 'bg-white text-red-600 shadow' : 'text-zinc-500'
+            className={`flex-1 rounded py-2.5 ${
+              mode === 'login' ? 'bg-white text-red-600 shadow' : 'text-zinc-600'
             }`}
           >
             Đăng nhập
@@ -71,10 +84,10 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={() => setMode('register')}
-            className={`flex-1 rounded py-1.5 ${
+            className={`flex-1 rounded py-2.5 ${
               mode === 'register'
                 ? 'bg-white text-red-600 shadow'
-                : 'text-zinc-500'
+                : 'text-zinc-600'
             }`}
           >
             Đăng ký
@@ -83,37 +96,59 @@ export default function LoginPage() {
 
         <form onSubmit={submit} className="space-y-3">
           {mode === 'register' && (
-            <input
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="Họ và tên"
-              required
-              className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-red-500"
-            />
+            <div>
+              <label htmlFor="li-name" className="mb-1 block text-sm font-medium text-zinc-700">
+                Họ và tên
+              </label>
+              <input
+                id="li-name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+                autoComplete="name"
+                className={inputCls}
+              />
+            </div>
           )}
-          <input
-            value={identifier}
-            onChange={(e) => setIdentifier(e.target.value)}
-            placeholder="Email hoặc số điện thoại"
-            required
-            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-red-500"
-          />
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Mật khẩu (tối thiểu 6 ký tự)"
-            required
-            minLength={6}
-            className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm outline-none focus:border-red-500"
-          />
+          <div>
+            <label htmlFor="li-id" className="mb-1 block text-sm font-medium text-zinc-700">
+              Email hoặc số điện thoại
+            </label>
+            <input
+              id="li-id"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              required
+              autoComplete="username"
+              className={inputCls}
+            />
+          </div>
+          <div>
+            <label htmlFor="li-pw" className="mb-1 block text-sm font-medium text-zinc-700">
+              Mật khẩu <span className="font-normal text-zinc-500">(tối thiểu 6 ký tự)</span>
+            </label>
+            <input
+              id="li-pw"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              className={inputCls}
+            />
+          </div>
 
-          {err && <p className="text-sm text-red-600">{err}</p>}
+          {err && (
+            <p role="alert" className="rounded-md bg-red-50 p-3 text-sm text-red-700">
+              {err}
+            </p>
+          )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-md bg-red-600 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+            className="h-12 w-full rounded-md bg-red-600 text-base font-semibold text-white hover:bg-red-700 disabled:opacity-60"
           >
             {loading
               ? 'Đang xử lý…'
