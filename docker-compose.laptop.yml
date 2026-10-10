@@ -1,0 +1,89 @@
+# ============================================================
+# Chạy backend SWE Phú Thọ trên MÁY LAPTOP (self-host qua Cloudflare Tunnel).
+# Không dùng Caddy, không mở port ra Internet — Cloudflare Tunnel lo SSL + kết nối.
+# Bỏ Redis (project chưa dùng) để tiết kiệm RAM.
+#
+# Dùng:
+#   1) cp .env.laptop.example .env  (rồi điền giá trị thật)
+#   2) docker compose -f docker-compose.laptop.yml up -d --build
+#   3) (chỉ lần đầu) nạp dữ liệu:  xem docs/04_HUONG_DAN_HOSTING_LAPTOP.md
+# ============================================================
+services:
+  postgres:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # Không publish port — chỉ truy cập nội bộ trong mạng docker.
+    # API chỉ khởi động khi DB đã sẵn sàng (tránh migrate lỗi lúc laptop mới bật).
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio
+    restart: always
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+    ports:
+      # Chỉ mở ra localhost của máy (không ra LAN/Internet) để vào Console quản trị.
+      - "127.0.0.1:9001:9001"
+
+  api:
+    build: ./api
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    # `docker compose ps` sẽ báo (healthy)/(unhealthy) cho API.
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:4000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+      PORT: 4000
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES: ${JWT_EXPIRES:-7d}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_REGION: us-east-1
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      MINIO_BUCKET: ${MINIO_BUCKET:-ketnoi-media}
+      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL}
+    ports:
+      # Mở ra localhost để chạy seed/công cụ từ máy; Internet vào qua tunnel.
+      - "127.0.0.1:4000:4000"
+
+  # Cloudflare Tunnel: kết nối máy ra Internet, KHÔNG cần mở port/không cần IP tĩnh.
+  # Lấy TOKEN ở Cloudflare Zero Trust → Networks → Tunnels (xem docs).
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: always
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - api
+      - minio
+
+volumes:
+  postgres_data:
+  minio_data:

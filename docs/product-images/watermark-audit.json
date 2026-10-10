@@ -1,0 +1,396 @@
+[
+  {
+    "sku": "STMT80944-8",
+    "index": 1,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/stmt80944-8-3712b55027.webp"
+  },
+  {
+    "sku": "48-22-8429",
+    "index": 2,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/48-22-8429-4331d8af56.webp"
+  },
+  {
+    "sku": "P-67963",
+    "index": 3,
+    "status": "replaced",
+    "reason": "Clean actual product photo on exact-model Cattools page. P-67963 model and 185mm/60 teeth markings visible on blade. Full composition preserved; resized without upscaling and WebP quality 88. Visually reviewed 2026-10-09.",
+    "localPath": "/products/p-67963-7e5fac1cd0.webp",
+    "sourcePage": "https://cattools.vn/san-pham/luoi-cat-go-185mm-makita-p-67963/"
+  },
+  {
+    "sku": "183N93-7",
+    "index": 4,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/183n93-7-18cea3794e.webp"
+  },
+  {
+    "sku": "THKISD12102L",
+    "index": 5,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/thkisd12102l-62c887304b.webp"
+  },
+  {
+    "sku": "48-22-8420",
+    "index": 6,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/48-22-8420-d7b3090054.webp"
+  },
+  {
+    "sku": "DTW700RTJ",
+    "index": 7,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/dtw700rtj-428c0cffdd.webp"
+  },
+  {
+    "sku": "DCB184-KR",
+    "index": 8,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/dcb184-kr-8291eac312.webp"
+  },
+  {
+    "sku": "M21-B8150PRO",
+    "index": 9,
+    "status": "replaced",
+    "reason": "Clean actual battery photograph from exact-model M21-B8150PRO product gallery, replacing promotional infographic. Full composition preserved; resized without upscaling and WebP quality 88. Visually reviewed 2026-10-09.",
+    "localPath": "/products/m21-b8150pro-721cf8bdad.webp",
+    "sourcePage": "https://storethietbi.com/pin-dekton-m21-b8150pro-21v-8-0ah-gen-4-cell-tabless-dong-xa-150a-pin-lithium-he-m21-chinh-hang"
+  },
+  {
+    "sku": "D16-CV180XPRO-CB",
+    "index": 10,
+    "status": "replaced",
+    "reason": "Ảnh sạch thân máy D16-CV180XPRO màu olive, cùng model và màu với ảnh trước; chỉ giữ logo in trên vật thể. Ảnh không minh họa đủ bộ 2 pin 2.0Ah và sạc. Giữ nguyên bố cục nguồn, không xóa/cắt watermark; WebP quality 88, không phóng lớn. Đối chiếu trực quan ngày 09/10/2026.",
+    "localPath": "/products/d16-cv180xpro-cb-549e9bb826.webp",
+    "sourcePage": "https://dektonchinhhang.com/san-pham/may-siet-vit-dung-pin-16-8v-180nm-dekton-d16-cv180xpro-mau-olive/"
+  },
+  {
+    "sku": "DTW190RFJX",
+    "index": 11,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/dtw190rfjx-dee039aff0.webp"
+  },
+  {
+    "sku": "HP488DWAE",
+    "index": 12,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/hp488dwae-cd7d5177ca.webp"
+  },
+  {
+    "sku": "0601B371K0",
+    "index": 13,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/0601b371k0-24da201fd1.webp"
+  },
+  {
+    "sku": "M2401B",
+    "index": 14,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/m2401b-59370c62c1.webp"
+  },
+  {
+    "sku": "0611253704",
+    "index": 15,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/0611253704-609f171344.webp"
+  },
+  {
+    "sku": "D28730-B1",
+    "index": 16,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/d28730-b1-b3a6f543ef.webp"
+  },
+  {
+    "sku": "M8103KX2B",
+    "index": 17,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/m8103kx2b-7986dcc5b4.webp"
+  },
+  {
+    "sku": "06012281K1",
+    "index": 18,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/06012281k1-57c6ffb23a.webp"
+  },
+  {
+    "sku": "HL-110C",
+    "index": 19,
+    "status": "replaced",
+    "reason": "Ảnh sạch đúng trang Jumbo HL-110C của nhà phân phối Thadaco/xeday.vn. Đã loại ảnh Sumo dù trùng mã HL-110C để giữ đúng thương hiệu. Giữ nguyên bố cục, không xóa/cắt watermark. Nguồn chỉ 252×260px, không phóng lớn. Đối chiếu trực quan 09/10/2026.",
+    "localPath": "/products/hl-110c-54d05646cd.webp",
+    "sourcePage": "https://www.xeday.vn/xe-day-tay-jumbo-hl-series/xe-day-hang-tien-jumbo-hl-110.aspx"
+  },
+  {
+    "sku": "X370",
+    "index": 20,
+    "status": "replaced",
+    "reason": "Ảnh sản phẩm X370 màu đỏ, đúng trang ghi mã X370; đã kiểm tra toàn bộ ảnh không có chữ hoặc watermark chèn lên. Giữ nguyên bố cục, không xóa/cắt watermark. Nguồn ảnh chỉ có kích thước 320×320. Visually reviewed 2026-10-09; WebP quality 88 without upscaling.",
+    "localPath": "/products/x370-285046249c.webp",
+    "sourcePage": "https://sieusieure.com.vn/products/xe-day-tay-2-banh-phong-thanh-x370"
+  },
+  {
+    "sku": "XTB100DG",
+    "index": 21,
+    "status": "replaced",
+    "reason": "Ảnh chính trên trang META đúng XTB100DG, bản nguồn 2018 không có watermark. Ảnh mô tả bản 2017 của cùng trang có watermark META.vn và đã loại. Giữ nguyên bố cục và nhãn dập PHONG THANH trên sản phẩm. Visually reviewed 2026-10-09; WebP quality 88 without upscaling.",
+    "localPath": "/products/xtb100dg-03e53f0d7b.webp",
+    "sourcePage": "https://meta.vn/xe-day-hang-phong-thanh-xtb100dg-p45453"
+  },
+  {
+    "sku": "H303",
+    "index": 22,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/h303-6e61c3ea65.webp"
+  },
+  {
+    "sku": "HB-210 C",
+    "index": 23,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/hb-210-c-357aa72d22.webp"
+  },
+  {
+    "sku": "XTL 130DS",
+    "index": 24,
+    "status": "replaced",
+    "reason": "Ảnh chính từ trang đại lý đúng XTL130DS, đã kiểm tra toàn bộ ảnh không có watermark hoặc chữ chèn lên. Giữ nguyên bố cục và nhãn dập PHONG THANH trên sản phẩm. Nguồn ảnh chỉ có kích thước 350×350. Visually reviewed 2026-10-09; WebP quality 88 without upscaling.",
+    "localPath": "/products/xtl-130ds-b4908fd8a5.webp",
+    "sourcePage": "https://www.phongthanh.net.vn/xe-day-hang-phong-thanh-xtl130ds_14.html"
+  },
+  {
+    "sku": "48-22-3078",
+    "index": 25,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/48-22-3078-35a26ba96e.webp"
+  },
+  {
+    "sku": "48-22-6109",
+    "index": 26,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/48-22-6109-d6fe437c78.webp"
+  },
+  {
+    "sku": "TACSD30316",
+    "index": 27,
+    "status": "replaced",
+    "reason": "Ảnh chụp bộ vít TACSD30316 mở hộp từ gallery đúng mã, không có watermark/chữ quảng cáo chèn lên. Logo TOTAL nằm trên tay cầm sản phẩm. Giữ nguyên bố cục nguồn, không xóa/cắt watermark; WebP quality 88, không phóng lớn. Đối chiếu trực quan ngày 09/10/2026.",
+    "localPath": "/products/tacsd30316-a07a7551ea.webp",
+    "sourcePage": "https://supertoolsbd.com/product/tacsd30316/"
+  },
+  {
+    "sku": "2155",
+    "index": 28,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/2155-224bc259a6.webp"
+  },
+  {
+    "sku": "26708",
+    "index": 29,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/26708-34c96f18d1.webp"
+  },
+  {
+    "sku": "09261",
+    "index": 30,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/09261-e14ee75da8.webp"
+  },
+  {
+    "sku": "G2-200MINI",
+    "index": 31,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/g2-200mini-9573e4c2f9.webp"
+  },
+  {
+    "sku": "ARC200T",
+    "index": 32,
+    "status": "replaced",
+    "reason": "Clean machine photograph from exact-model ARC200T gallery. JASIC/ARC200T labels and welding helmet graphic are printed on the physical control panel; no repeating watermark overlay. Full composition preserved; WebP quality 88 without upscaling. Visually reviewed 2026-10-09.",
+    "localPath": "/products/arc200t-057d278210.webp",
+    "sourcePage": "https://pemco.com.vn/san-pham/may-han-que-dien-tu-jasic-arc200t/"
+  },
+  {
+    "sku": "HK 200N",
+    "index": 33,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/hk-200n-765ef59c4e.webp"
+  },
+  {
+    "sku": "TIG250S W228",
+    "index": 34,
+    "status": "replaced",
+    "reason": "Clean product views on exact-model TIG250S W228 page. WELDCOM and product labels are printed on the machine, not overlay watermarks. Full composition preserved; resized without upscaling and WebP quality 88. Visually reviewed 2026-10-09.",
+    "localPath": "/products/tig250s-w228-8c1eacddb4.webp",
+    "sourcePage": "https://minhtriet.com.vn/products/may-han-tig-nguoi-jasic-tig250s-w228"
+  },
+  {
+    "sku": "Tig 250A W227",
+    "index": 35,
+    "status": "replaced",
+    "reason": "Clean exact-model TIG250A W227 machine photo; JASIC logo and model are printed on physical product. Full composition preserved; WebP quality 88 without upscaling. Visually reviewed 2026-10-09.",
+    "localPath": "/products/tig-250a-w227-916fc2ac42.webp",
+    "sourcePage": "https://jasicvietnam.com/san-pham/may-han-jasic-tig-250a-w227/"
+  },
+  {
+    "sku": "HKM1250",
+    "index": 36,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/hkm1250-81361e774f.webp"
+  },
+  {
+    "sku": "THT11051-3",
+    "index": 37,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/tht11051-3-3a6ad7e687.webp"
+  },
+  {
+    "sku": "THT11151-3",
+    "index": 38,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/tht11151-3-d05930de60.webp"
+  },
+  {
+    "sku": "SI-2001S-6",
+    "index": 39,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/si-2001s-6-d2c1cd32e9.webp"
+  },
+  {
+    "sku": "SI-3111-6",
+    "index": 40,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/si-3111-6-0f5a304d95.webp"
+  },
+  {
+    "sku": "PA-3201",
+    "index": 41,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/pa-3201-9279bab061.webp"
+  },
+  {
+    "sku": "02511",
+    "index": 42,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/02511-c1da7db9c2.webp"
+  },
+  {
+    "sku": "DK-CWR2200VTG",
+    "index": 43,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/dk-cwr2200vtg-af1cb19e9f.webp"
+  },
+  {
+    "sku": "G2-GFB280Bar",
+    "index": 44,
+    "status": "replaced",
+    "reason": "Clean actual gun and foam bottle photograph from exact G2-GFB280BAR gallery. Full composition retained; printed HUKAN product branding retained. Full composition preserved; WebP quality 88 without upscaling. Visually reviewed 2026-10-09.",
+    "localPath": "/products/g2-gfb280bar-58cdb066dd.webp",
+    "sourcePage": "https://www.duc7hienstore.com/khau-xit-rua-ap-luc-hukan-g2-gfb280bar"
+  },
+  {
+    "sku": "06008A7AK0",
+    "index": 45,
+    "status": "replaced",
+    "reason": "Clean original product photograph on Npower exact-model page for Bosch UniversalAquatak 125 / 06008A7AK0; product label visually confirmed. Replaces dealer-watermarked image. Entire composition retained; resized without upscaling and encoded WebP quality88. Visually reviewed 2026-10-08.",
+    "localPath": "/products/06008a7ak0-c5aa97b42b.webp",
+    "sourcePage": "https://npower.com.vn/collections/nhom-hang-may-xit-rua/products/bosch_8a7ak0"
+  },
+  {
+    "sku": "06008A7FK0",
+    "index": 46,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/06008a7fk0-40c88b5c61.webp"
+  },
+  {
+    "sku": "SL19301-4BA",
+    "index": 47,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/sl19301-4ba-62e42835e3.webp"
+  },
+  {
+    "sku": "DK-CWR2200XPRO",
+    "index": 48,
+    "status": "replaced",
+    "reason": "Clean actual product photograph from exact-model Dekton DK-CWR2200XPRO gallery. Model label visible on product; printed safety and brand labels retained. Full composition preserved; WebP quality 88 without upscaling. Visually reviewed 2026-10-09.",
+    "localPath": "/products/dk-cwr2200xpro-5a734e6b68.webp",
+    "sourcePage": "https://dekton.vn/san-pham-dekton/may-rua-xe-dekton-dk-cwr2200xpro/"
+  },
+  {
+    "sku": "FS32V1",
+    "index": 49,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/fs32v1-f2989e229d.webp"
+  },
+  {
+    "sku": "QN15-3-15A",
+    "index": 50,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/qn15-3-15a-a034f464ee.webp"
+  },
+  {
+    "sku": "YBRIDX-30M-20A",
+    "index": 51,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/ybridx-30m-20a-b845a4b14d.webp"
+  },
+  {
+    "sku": "516718-8",
+    "index": 52,
+    "status": "replaced",
+    "reason": "Ảnh rotor Makita 516718-8 trên trang iToolmart mã s26-0006-516718-8 cho LS1040. Toàn bộ ảnh không có watermark hoặc chữ quảng cáo chèn lên; mã khắc trên rotor được giữ nguyên. Giữ nguyên bố cục, không xóa/cắt watermark; WebP quality 88, không phóng lớn. Đối chiếu trực quan 09/10/2026.",
+    "localPath": "/products/516718-8-c3dc0e3cf0.webp",
+    "sourcePage": "https://itoolmart.com/product/8vvm0/ARMATURE-ASS%27Y-MAKITA-LS1040"
+  },
+  {
+    "sku": "515619-7",
+    "index": 53,
+    "status": "clean",
+    "reason": "Visually reviewed entire composition on 2026-10-08: no dealer/website/promotional watermark; printed manufacturer and product labels retained.",
+    "localPath": "/products/515619-7-07da5631c1.webp"
+  },
+  {
+    "sku": "1619P01844",
+    "index": 54,
+    "status": "replaced",
+    "reason": "Clean actual Bosch armature photo from exact part 1619P01844 page. Full composition preserved; WebP quality 88 without upscaling. Visually reviewed 2026-10-09.",
+    "localPath": "/products/1619p01844-110eb9a15e.webp",
+    "sourcePage": "https://bosch-bg.com/rotor-za-agloshlayf-bosch-pws-650-pws-680"
+  }
+]
