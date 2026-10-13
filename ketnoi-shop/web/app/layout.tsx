@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/components/cart/CartContext";
 import Header from "@/components/Header";
@@ -8,15 +8,13 @@ import ContactFab from "@/components/ContactFab";
 import { StoreAvailabilityProvider } from "@/components/StoreAvailability";
 import WebMetrics from "@/components/WebMetrics";
 import { absoluteUrl, serializeJsonLd, SITE_URL } from "@/lib/seo";
+import { API_BASE } from "@/lib/api";
+import { probeStoreStatus } from "@/lib/store-status";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin", "latin-ext"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  display: "optional",
 });
 
 // Mọi trang render theo từng request, nhưng dữ liệu API lấy từ cache (TTL trong
@@ -70,15 +68,18 @@ const organization = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Render the live notice in the first HTML, avoiding a late layout shift.
+  // This probe is bounded and never treats cached catalogue data as live health.
+  const initialStoreStatus = await probeStoreStatus(API_BASE);
   return (
     <html
       lang="vi"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
         <script
@@ -88,7 +89,10 @@ export default function RootLayout({
         <CartProvider>
           <WebMetrics />
           <Header />
-          <StoreAvailabilityProvider>
+          <StoreAvailabilityProvider
+            initialStatus={initialStoreStatus}
+            key={`${initialStoreStatus.available}-${initialStoreStatus.capabilities.effectivePriceFilters}-${initialStoreStatus.capabilities.productFreeShipping}`}
+          >
           <main className="flex-1">{children}</main>
           <Footer />
           <ContactFab />

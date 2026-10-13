@@ -9,9 +9,9 @@ const noCapabilities = { effectivePriceFilters: false, productFreeShipping: fals
 const StoreContext = createContext<{ status: Status; capabilities: StoreStatus['capabilities']; retry: () => void }>({ status: 'checking', capabilities: noCapabilities, retry: () => {} });
 export function useStoreAvailability() { return useContext(StoreContext); }
 
-export function StoreAvailabilityProvider({ children }: { children: React.ReactNode }) {
-  const [status, setStatus] = useState<Status>('checking');
-  const [capabilities, setCapabilities] = useState(noCapabilities);
+export function StoreAvailabilityProvider({ children, initialStatus }: { children: React.ReactNode; initialStatus?: StoreStatus }) {
+  const [status, setStatus] = useState<Status>(initialStatus ? (initialStatus.available ? 'available' : 'unavailable') : 'checking');
+  const [capabilities, setCapabilities] = useState(initialStatus?.available ? initialStatus.capabilities : noCapabilities);
   const [revision, setRevision] = useState(0);
   const retry = useCallback(() => setRevision((n) => n + 1), []);
   useEffect(() => {
@@ -38,7 +38,9 @@ export function StoreAvailabilityProvider({ children }: { children: React.ReactN
         if (!disposed) { setStatus('unavailable'); setCapabilities(noCapabilities); }
       } finally { clearTimeout(timeout); inFlight = false; }
     }
-    void check();
+    // SSR has just checked live health. Keep manual retry immediate and refresh
+    // on visibility / each minute without repeating the first request.
+    if (!initialStatus || revision > 0) void check();
     const interval = setInterval(() => { if (!document.hidden) void check(); }, 60000);
     const onVisible = () => { if (!document.hidden) void check(); };
     document.addEventListener('visibilitychange', onVisible);
@@ -48,7 +50,7 @@ export function StoreAvailabilityProvider({ children }: { children: React.ReactN
       clearInterval(interval);
       document.removeEventListener('visibilitychange', onVisible);
     };
-  }, [revision]);
+  }, [initialStatus, revision]);
   const contact = getStoreContact();
   return (
     <StoreContext.Provider value={{ status, capabilities, retry }}>
