@@ -1,0 +1,8 @@
+node_modules
+dist
+.env
+*.log
+_boot*.log
+.git
+coverage
+.vscode

@@ -1,0 +1,12 @@
+# Reverse proxy + tự động cấp SSL (Let's Encrypt) cho API và MinIO.
+# Thay "yourdomain.com" bằng tên miền thật. Trỏ DNS (A record):
+#   api.yourdomain.com   -> IP server
+#   media.yourdomain.com -> IP server
+
+api.yourdomain.com {
+    reverse_proxy api:4000
+}
+
+media.yourdomain.com {
+    reverse_proxy minio:9000
+}

@@ -1,0 +1,97 @@
+{
+  "06012281K1": {
+    "brand": "Bosch",
+    "model": "GSB 16 RE — 06012281K1",
+    "shortDesc": "Máy khoan động lực 750W, đầu cặp 1,5–13mm; khoan tối đa 25mm trên gỗ, 16mm trên bê tông và 12mm trên thép.",
+    "description": "Bosch GSB 16 RE mã 06012281K1 là máy khoan động lực dùng điện có công suất 750W. Đầu cặp nhận mũi từ 1,5 đến 13mm, dùng cho các công việc khoan gỗ, thép và bê tông trong giới hạn công bố. Máy có tốc độ không tải đến 3.250 vòng/phút và khối lượng 1,8kg. Chọn mũi khoan phù hợp với vật liệu và đường kính cần gia công.",
+    "specs": [
+      { "specName": "Công suất", "specValue": "750W" },
+      { "specName": "Tốc độ không tải", "specValue": "0–3.250 vòng/phút" },
+      { "specName": "Tần số đập không tải", "specValue": "0–48.500 lần/phút" },
+      { "specName": "Đầu cặp", "specValue": "1,5–13mm" },
+      { "specName": "Đường kính khoan tối đa", "specValue": "Gỗ: 25mm; bê tông: 16mm; thép: 12mm" },
+      { "specName": "Khối lượng", "specValue": "1,8kg" }
+    ],
+    "source": {
+      "title": "Bosch Professional — GSB 16 RE, 0 601 228 1K1",
+      "url": "https://www.bosch-professional.com/tn/en/products/gsb-16-re-06012281K1",
+      "checkedAt": "2026-10-12"
+    }
+  },
+  "DCB184-KR": {
+    "brand": "Dewalt",
+    "model": "DCB184-KR",
+    "shortDesc": "Pin XR lithium-ion 5,0Ah, đèn báo mức pin LED; hãng công bố tương thích với dụng cụ DEWALT 18V XR.",
+    "description": "DEWALT DCB184-KR là pin lithium-ion XR dung lượng 5,0Ah, được hãng giới thiệu trong dòng 20V MAX. Đèn LED giúp kiểm tra mức pin trước khi làm việc. Theo trang DEWALT Asia của đúng mã này, pin tương thích với dụng cụ 18V XR và có bảo vệ quá nhiệt, quá tải, xả sâu. Đối chiếu mã máy và bộ sạc đang dùng khi chọn pin thay thế.",
+    "specs": [
+      { "specName": "Điện áp dòng sản phẩm", "specValue": "20V MAX" },
+      { "specName": "Dung lượng pin", "specValue": "5,0Ah" },
+      { "specName": "Công nghệ pin", "specValue": "Lithium-ion XR" },
+      { "specName": "Tương thích dụng cụ", "specValue": "DEWALT 18V XR, theo công bố hãng" },
+      { "specName": "Báo mức pin", "specValue": "Đèn LED" },
+      { "specName": "Bảo vệ pin", "specValue": "Quá nhiệt, quá tải và xả sâu" }
+    ],
+    "source": {
+      "title": "DEWALT Asia — DCB184-KR 20V MAX 5.0 AH XR Battery",
+      "url": "https://asia.dewalt.global/product/dcb184-kr/20v-max-50-ah-xr-battery",
+      "checkedAt": "2026-10-12"
+    }
+  },
+  "M8103KX2B": {
+    "brand": "Makita",
+    "model": "M8103KX2B",
+    "shortDesc": "Máy khoan búa dùng điện 430W, đầu cặp dùng khóa 1,5–13mm; khả năng khoan gỗ 18mm, thép và bê tông 13mm.",
+    "description": "Makita M8103KX2B thuộc dòng MT, dùng điện với công suất 430W và đầu cặp dùng khóa. Máy phục vụ khoan gỗ, thép và bê tông trong giới hạn công bố; dây điện 2m thuận tiện bố trí vị trí làm việc. Trang Makita Việt Nam xác định đúng mã M8103KX2B là phiên bản bộ 26 phụ kiện. Liên hệ SWE để đối chiếu bộ giao thực tế theo đơn hàng.",
+    "specs": [
+      { "specName": "Công suất", "specValue": "430W" },
+      { "specName": "Đường kính khoan tối đa", "specValue": "Gỗ (mũi khoan): 18mm; thép: 13mm; bê tông: 13mm" },
+      { "specName": "Đầu cặp", "specValue": "Dùng khóa, 1,5–13mm" },
+      { "specName": "Tần số đập", "specValue": "0–33.000 lần/phút" },
+      { "specName": "Khối lượng", "specValue": "1,8kg" },
+      { "specName": "Chiều dài dây điện", "specValue": "2m" }
+    ],
+    "source": {
+      "title": "Makita Việt Nam — M8103KX2B Hammer Drill",
+      "url": "https://makita.com.vn/en/product/platform-en/mt-series/hammer-drill-mt-series/m8103kx2b-hammer-drill13mm26pcs-set-acc/",
+      "checkedAt": "2026-10-12"
+    }
+  },
+  "48-22-3078": {
+    "brand": "Milwaukee",
+    "model": "48-22-3078",
+    "shortDesc": "Kìm điện 7 chức năng: kẹp, bấm cos, tuốt dây, cắt dây, tạo vòng, doa ống và cắt bu lông.",
+    "description": "Milwaukee 48-22-3078 kết hợp bảy thao tác chuẩn bị dây và lắp đặt điện trong một dụng cụ. Hàm rộng hỗ trợ kẹp, xoắn dây; phần bấm cos dùng cho đầu cos có hoặc không có lớp cách điện. Kìm có khóa xoay để thao tác một tay, tay cầm tạo đòn bẩy và lỗ gắn dây giữ dụng cụ. Chọn đúng cỡ dây, ống và bu lông theo phạm vi công bố.",
+    "specs": [
+      { "specName": "Chức năng", "specValue": "7 trong 1" },
+      { "specName": "Tuốt dây đặc", "specValue": "8–18 AWG" },
+      { "specName": "Tuốt dây bện", "specValue": "10–20 AWG" },
+      { "specName": "Cắt dây", "specValue": "Tối đa 4 dây cỡ 12 AWG" },
+      { "specName": "Doa ống", "specValue": "Ống 1/2–1 inch" },
+      { "specName": "Cắt bu lông", "specValue": "Cỡ #6 và #8" }
+    ],
+    "source": {
+      "title": "Milwaukee Tool — 48-22-3078 7-in-1 Combination Pliers",
+      "url": "https://www.milwaukeetool.com/products/details/7in1-high-leverage-combination-pliers/48-22-3078",
+      "checkedAt": "2026-10-12"
+    }
+  },
+  "ARC200T": {
+    "brand": "Jasic",
+    "model": "ARC200T",
+    "shortDesc": "Máy hàn que Inverter một pha AC220V, dải dòng 20–200A; phù hợp sửa chữa gia đình và cơ khí dân dụng.",
+    "description": "Jasic ARC200T là máy hàn que Inverter dùng nguồn một pha AC220V, có dải điều chỉnh dòng hàn 20–200A. Nhà phân phối Jasic tại Việt Nam giới thiệu máy cho sửa chữa gia đình, công trình nhỏ và cơ khí dân dụng. Thân máy nặng 3,2kg, kích thước 273 × 125 × 215mm. Khi chọn máy, đối chiếu nguồn điện, loại que và chế độ làm việc cần dùng với SWE.",
+    "specs": [
+      { "specName": "Nguồn điện", "specValue": "1 pha AC220V ±15%, 50/60Hz" },
+      { "specName": "Dải dòng hàn", "specValue": "20–200A" },
+      { "specName": "Công suất định mức", "specValue": "9,4kVA" },
+      { "specName": "Điện áp không tải", "specValue": "65V" },
+      { "specName": "Khối lượng thân máy", "specValue": "3,2kg" },
+      { "specName": "Kích thước máy", "specValue": "273 × 125 × 215mm" }
+    ],
+    "source": {
+      "title": "Jasic Việt Nam / Weldcom — Máy hàn que ARC200T",
+      "url": "https://jasic.com.vn/san-pham/may-han-que-dung-dien-arc200t-jasic/",
+      "checkedAt": "2026-10-12"
+    }
+  }
+}
