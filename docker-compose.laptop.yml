@@ -49,7 +49,7 @@ services:
         condition: service_started
     # `docker compose ps` sẽ báo (healthy)/(unhealthy) cho API.
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://localhost:4000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      test: ["CMD", "node", "-e", "fetch('http://localhost:4000/health',{signal:AbortSignal.timeout(8000)}).then(async r=>{const body=await r.json();process.exit(r.ok&&body.status==='ok'&&body.database==='connected'?0:1)}).catch(()=>process.exit(1))"]
       interval: 30s
       timeout: 10s
       start_period: 60s
@@ -81,8 +81,10 @@ services:
     environment:
       TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
     depends_on:
-      - api
-      - minio
+      api:
+        condition: service_healthy
+      minio:
+        condition: service_started
 
 volumes:
   postgres_data:

@@ -4,7 +4,8 @@ import SearchBox, { HeaderSearch } from './SearchBox';
 import CategoryNav, { CategoryNavMobile } from './CategoryNav';
 import CartLink from './cart/CartLink';
 import { getCategoriesSafe, getSettingsSafe } from '@/lib/api';
-import { hotlineOf, telHref } from '@/lib/contact';
+import { telHref } from '@/lib/contact';
+import { getStoreContact } from '@/lib/store-info';
 
 // Header:
 // - Mobile (< sm): 3 tầng gọn — logo + icon (gọi, tài khoản, giỏ), ô tìm kiếm,
@@ -15,8 +16,7 @@ export default async function Header() {
     getCategoriesSafe(),
     getSettingsSafe(),
   ]);
-  const hotline = hotlineOf(settings);
-  const gioLamViec = settings.gio_lam_viec ?? '8H - 21H (T2 - CN)';
+  const { hotline, workingHours: gioLamViec } = getStoreContact(settings);
 
   return (
     <header className="sticky top-0 z-30 bg-white shadow-sm">

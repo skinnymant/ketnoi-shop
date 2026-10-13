@@ -2,6 +2,9 @@
 // Đổi backend chỉ cần sửa file này, UI giữ nguyên.
 
 import { withProductImages } from './product-images';
+import { withProductContent } from './product-content';
+import { cache } from 'react';
+export { SITE_URL } from './seo';
 
 import type {
   CategoryNode,
@@ -16,9 +19,12 @@ import type {
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL?.trim().replace(/\/$/, '') || 'http://localhost:4000';
 
-// URL công khai của website (dùng cho SEO: metadata, sitemap, robots)
-export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, '') || 'http://localhost:3000';
+export class ApiRequestError extends Error {
+  constructor(public readonly status: number | null) {
+    super('Không tải được dữ liệu cửa hàng.');
+    this.name = 'ApiRequestError';
+  }
+}
 
 // Thời gian (giây) dữ liệu được dùng lại trước khi hỏi lại API.
 // Hết hạn thì Next trả bản cũ ngay và cập nhật ngầm; nếu API đang tắt
@@ -27,14 +33,17 @@ export const SITE_URL =
 const TTL = { products: 60, catalog: 300 } as const;
 
 async function getJSON<T>(path: string, revalidate: number = TTL.products): Promise<T> {
-  const res = await fetch(
-    `${API_BASE}${path}`,
-    typeof window === 'undefined'
-      ? { next: { revalidate } }
-      : { cache: 'no-store' }, // trình duyệt (trang admin): luôn lấy dữ liệu mới
-  );
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      ...(typeof window === 'undefined' ? { next: { revalidate } } : { cache: 'no-store' }),
+      signal: AbortSignal.timeout(8000),
+    });
+  } catch {
+    throw new ApiRequestError(null);
+  }
   if (!res.ok) {
-    throw new Error(`API ${path} lỗi ${res.status}`);
+    throw new ApiRequestError(res.status);
   }
   return (await res.json()) as T;
 }
@@ -68,18 +77,20 @@ function buildQuery(q: ProductQuery): string {
 export const getCategories = () =>
   getJSON<CategoryNode[]>('/categories', TTL.catalog);
 export const getCategoriesSafe = () => safe(getCategories(), []);
-export const getCategory = (slug: string) =>
-  getJSON<CategoryNode>(`/categories/${encodeURIComponent(slug)}`, TTL.catalog);
+export const getCategory = cache((slug: string) =>
+  getJSON<CategoryNode>(`/categories/${encodeURIComponent(slug)}`, TTL.catalog),
+);
 
 // ----- Sản phẩm -----
 export const getProducts = async (q: ProductQuery = {}) => {
   const result = await getJSON<ProductListResponse>(`/products${buildQuery(q)}`);
   return { ...result, data: result.data.map(withProductImages) };
 };
-export const getProduct = async (slug: string) =>
-  withProductImages(
+export const getProduct = cache(async (slug: string) =>
+  withProductContent(withProductImages(
     await getJSON<ProductDetail>(`/products/${encodeURIComponent(slug)}`),
-  );
+  )),
+);
 
 // Sản phẩm theo danh mục — bọc an toàn, API lỗi trả mảng rỗng
 // (dùng cho các khu vực danh mục ở trang chủ, không làm sập trang).
@@ -104,7 +115,7 @@ export const getBrands = () => getJSON<Brand[]>('/brands', TTL.catalog);
 export const getBrandsSafe = () => safe(getBrands(), [] as Brand[]);
 
 // ----- Cấu hình hệ thống -----
-export const getSettings = () => getJSON<Settings>('/settings', TTL.catalog);
+export const getSettings = cache(() => getJSON<Settings>('/settings', TTL.catalog));
 export const getSettingsSafe = () => safe(getSettings(), {} as Settings);
 
 export { API_BASE };

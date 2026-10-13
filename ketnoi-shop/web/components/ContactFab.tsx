@@ -1,14 +1,12 @@
 import { getSettingsSafe } from '@/lib/api';
-import { hotlineOf, telHref, zaloHref } from '@/lib/contact';
+import { getStoreContact } from '@/lib/store-info';
 import ContactFabShell from './ContactFabShell';
 
 // Nút liên hệ nổi góc phải: Zalo + Gọi điện. Trên mobile đặt cao hơn để không
 // che thanh "Thêm vào giỏ" dính đáy ở trang sản phẩm.
 export default async function ContactFab() {
   const s = await getSettingsSafe();
-  const hotline = hotlineOf(s);
-  const zalo = zaloHref(s);
-  if (!hotline && !zalo) return null;
+  const { hotline, zalo, tel } = getStoreContact(s);
 
   return (
     <ContactFabShell>
@@ -25,7 +23,7 @@ export default async function ContactFab() {
       )}
       {hotline && (
         <a
-          href={telHref(hotline)}
+          href={tel}
           aria-label={`Gọi hotline ${hotline}`}
           className="flex h-12 w-12 items-center justify-center rounded-full bg-teal-700 text-white shadow-lg ring-2 ring-white hover:bg-teal-800"
         >

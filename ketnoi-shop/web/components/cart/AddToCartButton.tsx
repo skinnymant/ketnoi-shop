@@ -30,7 +30,8 @@ export default function AddToCartButton({
         </span>
         <button
           type="button"
-          onClick={() => setQty((q) => q + 1)}
+          onClick={() => setQty((q) => Math.min(999, q + 1))}
+          disabled={qty >= 999}
           className="h-11 w-11 text-lg text-zinc-600 hover:text-red-600"
           aria-label="Tăng số lượng"
         >

@@ -8,12 +8,13 @@ import { API_BASE } from '@/lib/api';
 import { getToken } from '@/lib/auth-client';
 import { getBankTransferDetails, type BankTransferDetails } from '@/lib/bank-transfer';
 import BankTransferInstructions from '@/components/BankTransferInstructions';
-import { hotlineOf, telHref } from '@/lib/contact';
+import { telHref } from '@/lib/contact';
+import { getFreeShippingThreshold, getStoreContact, STORE_SHIPPING } from '@/lib/store-info';
+import { useStoreAvailability } from '@/components/StoreAvailability';
+import { trackStoreEvent } from '@/lib/metrics-client';
 
 // Mặc định khi chưa tải được cài đặt; giá trị thật lấy từ settings.nguong_freeship
 // (giống cách API tính phí ship trong orders.service.ts).
-const FREESHIP_DEFAULT = 2000000;
-const SHIPPING_FLAT = 30000;
 const PENDING_CHECKOUT_KEY = 'swe.checkout.pending.v1';
 const LAST_ORDER_KEY = 'swe.checkout.last-order.v1';
 
@@ -101,6 +102,7 @@ function Field({
 
 export default function CheckoutPage() {
   const { items, subtotal, clear, ready } = useCart();
+  const { status, capabilities, retry } = useStoreAvailability();
   const [token, setTokenState] = useState<string | null>(null);
   const [receiverName, setReceiverName] = useState('');
   const [receiverPhone, setReceiverPhone] = useState('');
@@ -122,6 +124,14 @@ export default function CheckoutPage() {
   const [savedOrderReference, setSavedOrderReference] = useState<SavedOrderReference | null>(null);
   const submittingRef = useRef(false);
   const [err, setErr] = useState('');
+  const checkoutTracked = useRef(false);
+
+  useEffect(() => {
+    if (ready && items.length > 0 && !checkoutTracked.current) {
+      checkoutTracked.current = true;
+      trackStoreEvent('begin_checkout', 'checkout');
+    }
+  }, [ready, items.length]);
 
   useEffect(() => {
     setTokenState(getToken());
@@ -150,16 +160,23 @@ export default function CheckoutPage() {
     return () => controller.abort();
   }, []);
 
-  const freeshipThreshold = Number(settings.nguong_freeship) || FREESHIP_DEFAULT;
+  const freeshipThreshold = getFreeShippingThreshold(settings);
   const shippingFee =
-    subtotal === 0 || subtotal >= freeshipThreshold ? 0 : SHIPPING_FLAT;
+    subtotal === 0 || subtotal >= freeshipThreshold ||
+    (capabilities.productFreeShipping && items.length > 0 && items.every((item) => item.freeShip === true))
+      ? 0 : STORE_SHIPPING.flatFee;
   const total = subtotal + shippingFee;
-  const hotline = hotlineOf(settings);
+  const hotline = getStoreContact(settings).hotline;
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (submittingRef.current || orderUncertain || orderCode) return;
     setErr('');
+    if (status !== 'available') {
+      setErr('Nhận đơn trực tuyến đang tạm gián đoạn. Vui lòng liên hệ SWE; giỏ hàng của bạn vẫn được giữ.');
+      retry();
+      return;
+    }
     if (items.length === 0) {
       setErr('Giỏ hàng trống.');
       return;
@@ -221,6 +238,7 @@ export default function CheckoutPage() {
         throw new Error('Incomplete order response');
       }
       setOrderCode(data.orderCode);
+      trackStoreEvent('order_created', 'checkout');
       setOrderTotal(String(data.total));
       setOrderPaymentMethod(data.paymentMethod);
       setPaymentReviewRequired(data.paymentReviewRequired === true);
@@ -343,6 +361,15 @@ export default function CheckoutPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-6">
       <h1 className="mb-5 text-xl font-bold text-zinc-800">Thanh toán</h1>
+
+      {status !== 'available' && <div role="status" className="mb-5 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm leading-relaxed text-amber-900">
+        <p className="font-semibold">{status === 'checking' ? 'Đang kiểm tra khả năng nhận đơn…' : 'Tạm gián đoạn nhận đơn trực tuyến'}</p>
+        <p className="mt-1">Giỏ hàng vẫn được giữ. Bạn có thể gọi SWE để xác nhận giá, tồn kho và thời gian giao trước khi đặt.</p>
+        <div className="mt-2 flex flex-wrap gap-4">
+          <a href={telHref(hotline)} className="font-semibold underline">Gọi {hotline}</a>
+          <button type="button" onClick={retry} className="min-h-9 underline">Kiểm tra lại</button>
+        </div>
+      </div>}
 
       {!token && (
         <div className="mb-5 rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-600">
@@ -494,11 +521,16 @@ export default function CheckoutPage() {
           </div>
           <button
             type="submit"
-            disabled={placing || orderUncertain || items.length === 0}
+            disabled={placing || orderUncertain || items.length === 0 || status !== 'available'}
             className="h-12 w-full rounded-md bg-red-600 text-base font-semibold text-white hover:bg-red-700 disabled:opacity-60"
           >
-            {placing ? 'Đang đặt hàng…' : orderUncertain ? 'Chờ kiểm tra đơn hàng' : 'Đặt hàng'}
+            {placing ? 'Đang đặt hàng…' : orderUncertain ? 'Chờ kiểm tra đơn hàng' : status === 'checking' ? 'Đang kiểm tra nhận đơn…' : status === 'unavailable' ? 'Tạm ngừng nhận đơn trực tuyến' : 'Đặt hàng'}
           </button>
+          <p className="text-xs leading-relaxed text-zinc-500">Gửi đơn đồng nghĩa bạn đã đọc{' '}
+            <Link href="/chinh-sach-doi-tra" className="text-teal-700 underline">chính sách đổi trả</Link>,{' '}
+            <Link href="/chinh-sach-giao-hang" className="text-teal-700 underline">giao hàng</Link> và{' '}
+            <Link href="/chinh-sach-bao-mat" className="text-teal-700 underline">bảo mật thông tin</Link>.
+          </p>
         </form>
 
         {/* Mobile: tóm tắt đơn hiện TRƯỚC form để khách thấy mình đang mua gì */}
@@ -531,7 +563,7 @@ export default function CheckoutPage() {
               <span>{formatVND(subtotal)}</span>
             </div>
             <div className="flex justify-between text-zinc-500">
-              <span>Phí vận chuyển</span>
+              <span>Phí vận chuyển dự kiến</span>
               <span>{shippingFee === 0 ? 'Miễn phí' : formatVND(shippingFee)}</span>
             </div>
             {shippingFee > 0 && (
@@ -544,6 +576,7 @@ export default function CheckoutPage() {
               <span className="text-red-600">{formatVND(total)}</span>
             </div>
           </div>
+          <p className="mt-3 text-xs leading-relaxed text-zinc-500">Số tiền cuối cùng được máy chủ xác nhận khi tạo đơn. SWE xác nhận thời gian giao theo địa chỉ nhận hàng.</p>
         </aside>
       </div>
     </div>

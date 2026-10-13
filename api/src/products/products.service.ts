@@ -29,6 +29,12 @@ export class ProductsService {
       deletedAt: null,
       isActive: true,
     };
+    // Prisma does not support ordering by COALESCE through orderBy. Keep the
+    // same filter conditions for the bounded SQL price-sort page below.
+    const priceSortConditions = [
+      Prisma.sql`p.deleted_at IS NULL`,
+      Prisma.sql`p.is_active = true`,
+    ];
 
     // Lọc theo danh mục: lấy id danh mục + toàn bộ con cháu của nó
     if (q.category) {
@@ -45,28 +51,50 @@ export class ProductsService {
         ]),
       ];
       where.categoryId = { in: ids };
+      priceSortConditions.push(
+        Prisma.sql`p.category_id IN (${Prisma.join(ids)})`,
+      );
     }
 
     if (q.brand) {
       where.brand = { slug: q.brand };
+      priceSortConditions.push(Prisma.sql`b.slug = ${q.brand}`);
     }
 
-    // Khoảng giá: so trên salePrice (giá bán thật)
+    // Khoảng giá: salePrice nếu có, ngược lại dùng giá gốc price.
     if (q.minPrice !== undefined || q.maxPrice !== undefined) {
-      where.salePrice = {
+      const range = {
         ...(q.minPrice !== undefined && { gte: q.minPrice }),
         ...(q.maxPrice !== undefined && { lte: q.maxPrice }),
       };
+      where.OR = [{ salePrice: range }, { salePrice: null, price: range }];
+      if (q.minPrice !== undefined) {
+        priceSortConditions.push(
+          Prisma.sql`COALESCE(p.sale_price, p.price) >= ${q.minPrice}`,
+        );
+      }
+      if (q.maxPrice !== undefined) {
+        priceSortConditions.push(
+          Prisma.sql`COALESCE(p.sale_price, p.price) <= ${q.maxPrice}`,
+        );
+      }
     }
 
     // Tìm kiếm: không dấu, nhiều từ, chịu lỗi gõ — xem searchIds()
     if (q.search?.trim()) {
-      where.id = { in: await this.searchIds(q.search) };
+      const ids = await this.searchIds(q.search);
+      where.id = { in: ids };
+      priceSortConditions.push(
+        ids.length
+          ? Prisma.sql`p.id IN (${Prisma.join(ids)})`
+          : Prisma.sql`false`,
+      );
     }
 
     // Chỉ sản phẩm đang giảm giá (salePrice < price)
     if (q.onSale === 'true') {
       where.AND = [{ salePrice: { lt: this.prisma.product.fields.price } }];
+      priceSortConditions.push(Prisma.sql`p.sale_price < p.price`);
     }
 
     // Lọc theo thông số kỹ thuật: "Điện áp:18V"
@@ -74,49 +102,78 @@ export class ProductsService {
       const [specName, specValue] = q.spec.split(':');
       if (specName && specValue) {
         where.specs = { some: { specName, specValue } };
+        priceSortConditions.push(Prisma.sql`EXISTS (
+          SELECT 1 FROM product_specs s WHERE s.product_id = p.id
+            AND s.spec_name = ${specName} AND s.spec_value = ${specValue}
+        )`);
       }
     }
 
     // 2) Sắp xếp
     const orderBy: Prisma.ProductOrderByWithRelationInput =
-      q.sort === 'price_asc'
-        ? { salePrice: 'asc' }
-        : q.sort === 'price_desc'
-          ? { salePrice: 'desc' }
-          : q.sort === 'best_selling'
-            ? { soldCount: 'desc' }
-            : { createdAt: 'desc' }; // newest
+      q.sort === 'best_selling' ? { soldCount: 'desc' } : { createdAt: 'desc' }; // newest; price sort is handled in SQL below
 
     // 3) Chạy song song: đếm tổng + lấy trang hiện tại
     const page = q.page ?? 1;
     const limit = q.limit ?? 12;
-    const [total, data] = await this.prisma.$transaction([
-      this.prisma.product.count({ where }),
-      this.prisma.product.findMany({
-        where,
-        orderBy,
-        skip: (page - 1) * limit,
-        take: limit,
-        select: {
-          // Chỉ trả các trường thẻ sản phẩm cần — nhẹ và nhanh
-          id: true,
-          name: true,
-          slug: true,
-          sku: true,
-          price: true,
-          salePrice: true,
-          soldCount: true,
-          freeShip: true,
-          brand: { select: { name: true, slug: true } },
-          images: {
-            orderBy: { position: 'asc' },
-            take: 1,
-            select: { url: true, alt: true },
-          },
-          _count: { select: { reviews: { where: { status: 'APPROVED' } } } },
-        },
-      }),
-    ]);
+    const select = {
+      // Chỉ trả các trường thẻ sản phẩm cần — nhẹ và nhanh
+      id: true,
+      name: true,
+      slug: true,
+      sku: true,
+      price: true,
+      salePrice: true,
+      soldCount: true,
+      freeShip: true,
+      brand: { select: { name: true, slug: true } },
+      images: {
+        orderBy: { position: 'asc' },
+        take: 1,
+        select: { url: true, alt: true },
+      },
+      _count: { select: { reviews: { where: { status: 'APPROVED' } } } },
+    } satisfies Prisma.ProductSelect;
+    const priceSort = q.sort === 'price_asc' || q.sort === 'price_desc';
+    const [total, data] = priceSort
+      ? await this.prisma.$transaction(async (tx) => {
+          const direction =
+            q.sort === 'price_desc' ? Prisma.sql`DESC` : Prisma.sql`ASC`;
+          const [total, ids] = await Promise.all([
+            tx.product.count({ where }),
+            tx.$queryRaw<{ id: string }[]>`SELECT p.id FROM products p
+              LEFT JOIN brands b ON b.id = p.brand_id
+              WHERE ${Prisma.join(priceSortConditions, ' AND ')}
+              ORDER BY COALESCE(p.sale_price, p.price) ${direction}, p.id ASC
+              LIMIT ${limit} OFFSET ${(page - 1) * limit}`,
+          ]);
+          const products = ids.length
+            ? await tx.product.findMany({
+                where: { ...where, id: { in: ids.map(({ id }) => id) } },
+                select,
+              })
+            : [];
+          const byId = new Map(
+            products.map((product) => [product.id, product]),
+          );
+          return [
+            total,
+            ids.flatMap(({ id }) => {
+              const product = byId.get(id);
+              return product ? [product] : [];
+            }),
+          ] as const;
+        })
+      : await this.prisma.$transaction([
+          this.prisma.product.count({ where }),
+          this.prisma.product.findMany({
+            where,
+            orderBy,
+            skip: (page - 1) * limit,
+            take: limit,
+            select,
+          }),
+        ]);
 
     // Điểm sao thật (chỉ đánh giá đã duyệt) — frontend chỉ hiện sao khi có đánh giá
     const ratings = data.length

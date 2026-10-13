@@ -5,7 +5,9 @@ import { CartProvider } from "@/components/cart/CartContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ContactFab from "@/components/ContactFab";
-import { SITE_URL } from "@/lib/api";
+import { StoreAvailabilityProvider } from "@/components/StoreAvailability";
+import WebMetrics from "@/components/WebMetrics";
+import { absoluteUrl, serializeJsonLd, SITE_URL } from "@/lib/seo";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,6 +34,40 @@ export const metadata: Metadata = {
   },
   description:
     "Mua máy khoan, máy hàn, thang nhôm, xe đẩy hàng, dụng cụ cầm tay chính hãng Makita, Bosch, Milwaukee, Jasic — bảo hành đầy đủ, giao toàn quốc. Hotline 0865 457 498.",
+  openGraph: {
+    type: "website",
+    locale: "vi_VN",
+    siteName: "SWE Việt Nam",
+    title: "SWE Việt Nam — Dụng cụ & thiết bị công nghiệp",
+    description:
+      "Dụng cụ cầm tay, máy khoan, máy hàn và thiết bị công nghiệp. Tư vấn đúng model, bảo hành theo sản phẩm, giao hàng toàn quốc.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SWE Việt Nam — Dụng cụ & thiết bị công nghiệp",
+    description:
+      "Tư vấn dụng cụ và thiết bị công nghiệp, bảo hành theo sản phẩm, giao hàng toàn quốc.",
+    images: [absoluteUrl("/opengraph-image")],
+  },
+};
+
+const organization = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "@id": absoluteUrl("/#organization"),
+  name: "SWE Việt Nam",
+  legalName: "Công ty TNHH Thương mại và Dịch vụ SWE Việt Nam",
+  url: SITE_URL,
+  logo: absoluteUrl("/brand/swe-logo.png"),
+  taxID: "2601114735",
+  email: "swephuthovietnam@gmail.com",
+  telephone: "+84865457498",
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "Tổ 38, Khu 5, Phường Vân Phú",
+    addressRegion: "Phú Thọ",
+    addressCountry: "VN",
+  },
 };
 
 export default function RootLayout({
@@ -45,11 +81,18 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(organization) }}
+        />
         <CartProvider>
+          <WebMetrics />
           <Header />
+          <StoreAvailabilityProvider>
           <main className="flex-1">{children}</main>
           <Footer />
           <ContactFab />
+          </StoreAvailabilityProvider>
         </CartProvider>
       </body>
     </html>

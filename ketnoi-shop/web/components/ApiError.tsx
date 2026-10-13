@@ -1,23 +1,19 @@
-import { API_BASE } from '@/lib/api';
+import { getStoreContact } from '@/lib/store-info';
+import RetryCatalog from './RetryCatalog';
 
-// Hộp báo lỗi khi server không lấy được dữ liệu từ backend.
-// Hiện đúng địa chỉ API đang gọi (lấy từ NEXT_PUBLIC_API_URL) để dễ dò lỗi;
-// nguyên nhân cụ thể xem tại /kiem-tra-api.
 export default function ApiError() {
+  const contact = getStoreContact();
   return (
-    <div className="rounded-lg border border-amber-300 bg-amber-50 p-6 text-sm leading-relaxed text-amber-800">
+    <div role="status" className="rounded-lg border border-amber-300 bg-amber-50 p-5 text-sm leading-relaxed text-amber-900">
       <p className="font-semibold">
-        Hệ thống đang tạm gián đoạn, vui lòng tải lại trang sau ít phút.
+        Chưa tải được danh mục sản phẩm.
       </p>
-      <p className="mt-2 text-xs text-amber-700">
-        Không kết nối được tới API (
-        <code className="rounded bg-amber-100 px-1">{API_BASE}</code>). Quản trị
-        viên xem chi tiết tại{' '}
-        <a href="/kiem-tra-api" className="underline">
-          /kiem-tra-api
-        </a>
-        .
-      </p>
+      <p className="mt-2">Vui lòng thử lại sau ít phút hoặc liên hệ SWE để được tư vấn, xác nhận giá và tồn kho.</p>
+      <div className="mt-3 flex flex-wrap items-center gap-4">
+        <RetryCatalog />
+        <a href={contact.tel} className="font-semibold underline">Gọi {contact.hotline}</a>
+        <a href={contact.zalo} target="_blank" rel="noopener noreferrer" className="font-semibold underline">Tư vấn qua Zalo</a>
+      </div>
     </div>
   );
 }

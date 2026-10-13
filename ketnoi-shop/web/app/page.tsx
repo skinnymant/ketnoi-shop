@@ -8,6 +8,9 @@ import {
 import ProductCard from '@/components/ProductCard';
 import ApiError from '@/components/ApiError';
 import type { ProductCard as ProductCardType } from '@/lib/types';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = { alternates: { canonical: '/' } };
 
 // Tính % giảm giá từ price/salePrice (API trả Decimal dạng CHUỖI).
 function tinhPhanTramGiam(p: ProductCardType): number {
@@ -19,17 +22,17 @@ function tinhPhanTramGiam(p: ProductCardType): number {
 
 // 3 cam kết bán hàng hiển thị ngay dưới hero
 const USP = [
-  { icon: '🚚', text: 'Giao hàng toàn quốc' },
-  { icon: '✅', text: 'Cam kết chính hãng — đổi trả 7 ngày' },
-  { icon: '🛠️', text: 'Bảo hành theo từng sản phẩm' },
+  { icon: '🚚', text: 'Giao toàn quốc', href: '/chinh-sach-giao-hang' },
+  { icon: '✅', text: 'Đổi trả 7 ngày', href: '/chinh-sach-doi-tra' },
+  { icon: '🛠️', text: 'Bảo hành theo sản phẩm', href: '/chinh-sach-bao-hanh' },
 ];
 
 // Lưới 5 cột dùng chung cho mọi khu vực sản phẩm
-function LuoiSanPham({ products }: { products: ProductCardType[] }) {
+function LuoiSanPham({ products, eager = false }: { products: ProductCardType[]; eager?: boolean }) {
   return (
     <div className="grid grid-cols-2 gap-3 p-3 sm:grid-cols-3 lg:grid-cols-5">
-      {products.map((p) => (
-        <ProductCard key={p.id} product={p} />
+      {products.map((p, index) => (
+        <ProductCard key={p.id} product={p} eager={eager && index < 2} />
       ))}
     </div>
   );
@@ -72,38 +75,39 @@ export default async function Home() {
     .slice(0, 4);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6">
+    <div className="mx-auto max-w-7xl px-4 py-4 sm:py-6">
       {/* 1. Hero banner — gradient teal, không dùng ảnh ngoài */}
-      <section className="mb-6 overflow-hidden rounded-xl bg-gradient-to-r from-teal-700 to-emerald-600 p-8 text-white sm:p-12">
+      <section className="mb-3 overflow-hidden rounded-xl bg-gradient-to-r from-teal-700 to-emerald-600 p-4 text-white sm:mb-6 sm:p-10">
         <p className="text-xs font-semibold uppercase tracking-widest text-white/80">
           SWE Việt Nam
         </p>
-        <h1 className="mt-2 text-3xl font-extrabold sm:text-5xl">
-          CHÍNH HÃNG - GIÁ TỐT
+        <h1 className="mt-2 text-2xl font-extrabold leading-tight sm:text-4xl">
+          Dụng cụ & thiết bị công nghiệp
         </h1>
-        <p className="mt-3 max-w-2xl text-white/90">
-          Máy móc, thiết bị công nghiệp — bảo hành theo từng sản phẩm, giao toàn quốc.
+        <p className="mt-2 max-w-2xl text-sm text-white/90 sm:text-base">
+          Bosch, Makita, Milwaukee, Jasic — tư vấn đúng model cho công việc của bạn.
         </p>
         <Link
           href="/khuyen-mai"
-          className="mt-6 inline-block rounded-lg bg-red-600 px-6 py-2.5 text-sm font-bold text-white hover:bg-red-700"
+          className="mt-3 inline-flex min-h-11 items-center rounded-lg bg-red-600 px-5 text-sm font-bold text-white hover:bg-red-700 sm:mt-5"
         >
           Xem khuyến mãi
         </Link>
       </section>
 
       {/* 2. Dải USP — 3 cam kết bán hàng */}
-      <section className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <section aria-label="Chính sách mua hàng" className="mb-4 grid grid-cols-3 gap-2 sm:mb-6 sm:gap-3">
         {USP.map((u) => (
-          <div
+          <Link
             key={u.text}
-            className="flex items-center gap-3 rounded-lg border border-zinc-200 bg-white px-4 py-3"
+            href={u.href}
+            className="flex flex-col items-center gap-1 rounded-lg border border-zinc-200 bg-white px-2 py-2 text-center hover:border-teal-700 sm:flex-row sm:gap-3 sm:px-4 sm:py-3 sm:text-left"
           >
-            <span className="text-2xl" aria-hidden>
+            <span className="text-xl" aria-hidden>
               {u.icon}
             </span>
-            <span className="text-sm font-medium text-zinc-800">{u.text}</span>
-          </div>
+            <span className="text-xs font-medium text-zinc-800 sm:text-sm">{u.text}</span>
+          </Link>
         ))}
       </section>
 
@@ -119,7 +123,7 @@ export default async function Home() {
         <section className="mb-6 overflow-hidden rounded-lg border border-zinc-200 bg-white">
           <div className="flex items-center justify-between bg-red-600 px-4 py-2.5">
             <h2 className="text-sm font-bold uppercase text-white sm:text-base">
-              ⚡ Flash Sale — Giảm sâu
+              Ưu đãi nổi bật
             </h2>
             <Link
               href="/khuyen-mai"
@@ -128,12 +132,12 @@ export default async function Home() {
               Xem tất cả →
             </Link>
           </div>
-          <LuoiSanPham products={flashSale} />
+          <LuoiSanPham products={flashSale} eager />
         </section>
       )}
 
       {/* 4. Khu vực theo danh mục — tối đa 4 danh mục đầu có sản phẩm */}
-      {khuVucDanhMuc.map(({ danhMuc, sanPham }) => (
+      {khuVucDanhMuc.map(({ danhMuc, sanPham }, index) => (
         <section
           key={danhMuc.id}
           className="mb-6 overflow-hidden rounded-lg border border-zinc-200 bg-white"
@@ -149,7 +153,7 @@ export default async function Home() {
               Xem tất cả →
             </Link>
           </div>
-          <LuoiSanPham products={sanPham} />
+          <LuoiSanPham products={sanPham} eager={flashSale.length === 0 && index === 0} />
         </section>
       ))}
 
@@ -170,7 +174,7 @@ export default async function Home() {
         ) : banChay.length === 0 ? (
           <p className="p-4 text-sm text-zinc-500">Chưa có sản phẩm nào.</p>
         ) : (
-          <LuoiSanPham products={banChay} />
+          <LuoiSanPham products={banChay} eager={flashSale.length === 0 && khuVucDanhMuc.length === 0} />
         )}
       </section>
 

@@ -1,27 +1,27 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
-import { PrismaService } from './prisma/prisma.service';
+import type { PrismaService } from './prisma/prisma.service';
 
-describe('AppController', () => {
-  let appController: AppController;
+jest.mock('./prisma/prisma.service', () => ({ PrismaService: class {} }));
 
-  beforeEach(async () => {
-    const app: TestingModule = await Test.createTestingModule({
-      controllers: [AppController],
-      providers: [
-        { provide: PrismaService, useValue: { $queryRaw: jest.fn() } },
-      ],
-    }).compile();
-
-    appController = app.get<AppController>(AppController);
+describe('healthy backend capability contract', () => {
+  it('advertises effective price filtering and product shipping only after the DB responds', async () => {
+    const prisma = { $queryRaw: jest.fn().mockResolvedValue([{ result: 1 }]) };
+    const controller = new AppController(prisma as unknown as PrismaService);
+    await expect(controller.health()).resolves.toEqual({
+      status: 'ok',
+      database: 'connected',
+      capabilities: {
+        effectivePriceFilters: true,
+        productFreeShipping: true,
+      },
+    });
+    expect(prisma.$queryRaw).toHaveBeenCalledTimes(1);
   });
 
-  describe('health', () => {
-    it('should return status ok', async () => {
-      expect(await appController.health()).toEqual({
-        status: 'ok',
-        database: 'connected',
-      });
-    });
+  it('does not produce a healthy/capable response when the database probe fails', async () => {
+    const databaseError = new Error('Database unavailable');
+    const prisma = { $queryRaw: jest.fn().mockRejectedValue(databaseError) };
+    const controller = new AppController(prisma as unknown as PrismaService);
+    await expect(controller.health()).rejects.toBe(databaseError);
   });
 });

@@ -6,8 +6,10 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { getBankTransferDetails } from '../settings/bank-transfer';
-
-const SHIPPING_FLAT = 30000; // phí ship mặc định khi chưa đạt ngưỡng freeship
+import {
+  calculateShippingFee,
+  resolveFreeshipThreshold,
+} from './order-shipping';
 
 @Injectable()
 export class OrdersService {
@@ -41,7 +43,13 @@ export class OrdersService {
     const ids = dto.items.map((i) => i.productId);
     const products = await this.prisma.product.findMany({
       where: { id: { in: ids }, deletedAt: null, isActive: true },
-      select: { id: true, name: true, price: true, salePrice: true },
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        salePrice: true,
+        freeShip: true,
+      },
     });
     const map = new Map(products.map((p) => [p.id, p]));
 
@@ -68,14 +76,13 @@ export class OrdersService {
       };
     });
 
-    // Phí ship: miễn nếu đạt ngưỡng freeship (đọc từ Settings)
+    // Miễn ship khi mọi sản phẩm đều có cờ freeShip hoặc đạt ngưỡng cấu hình.
+    // Giá/cờ miễn ship được lấy từ DB, không tin dữ liệu tiền do khách gửi lên.
     const freeshipSetting = await this.prisma.setting.findUnique({
       where: { key: 'nguong_freeship' },
     });
-    const nguong = freeshipSetting
-      ? Number(freeshipSetting.value)
-      : Number.POSITIVE_INFINITY;
-    const shippingFee = subtotal >= nguong ? 0 : SHIPPING_FLAT;
+    const nguong = resolveFreeshipThreshold(freeshipSetting?.value);
+    const shippingFee = calculateShippingFee(subtotal, products, nguong);
     const discount = 0;
     const total = subtotal + shippingFee - discount;
 

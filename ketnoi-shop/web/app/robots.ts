@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { SITE_URL } from '@/lib/api';
+import { absoluteUrl, SITE_URL } from '@/lib/seo';
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -8,10 +8,10 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: '*',
         allow: '/',
         // Không cho index các trang riêng tư / tác vụ
-        disallow: ['/admin', '/gio-hang', '/thanh-toan', '/dang-nhap'],
+        disallow: ['/admin', '/gio-hang', '/thanh-toan', '/dang-nhap', '/dang-ky', '/tai-khoan', '/kiem-tra-api', '/api/'],
       },
     ],
-    sitemap: `${SITE_URL}/sitemap.xml`,
+    sitemap: absoluteUrl('/sitemap.xml'),
     host: SITE_URL,
   };
 }

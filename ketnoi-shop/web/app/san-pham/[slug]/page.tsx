@@ -1,15 +1,18 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getProduct, getSettingsSafe } from '@/lib/api';
-import { hotlineOf, telHref } from '@/lib/contact';
+import { ApiRequestError, getProduct, getSettingsSafe } from '@/lib/api';
+import { getStoreContact } from '@/lib/store-info';
+import ProductGallery from '@/components/ProductGallery';
+import { ProductViewMetric } from '@/components/WebMetrics';
+import { ProductStock, FreeShippingBadge } from '@/components/StoreAvailability';
 import AddToCartButton from '@/components/cart/AddToCartButton';
 import RatingStars from '@/components/RatingStars';
 import StickyBuyBar from '@/components/cart/StickyBuyBar';
 import { formatVND, discountPercent, effectivePrice } from '@/lib/format';
 import type { ProductDetail } from '@/lib/types';
 import type { Metadata } from 'next';
-import { SITE_URL } from '@/lib/api';
+import { SITE_URL, serializeJsonLd } from '@/lib/seo';
+import { getVerifiedProductContent } from '@/lib/product-content';
 import { formatWarranty, isWarrantySpec } from '@/lib/warranty';
 
 export async function generateMetadata({
@@ -39,7 +42,7 @@ export async function generateMetadata({
       },
     };
   } catch {
-    return { title: 'Sản phẩm' };
+    return { title: 'Thông tin sản phẩm', alternates: { canonical: `/san-pham/${slug}` } };
   }
 }
 
@@ -50,13 +53,14 @@ export default async function ProductPage({
 }) {
   const { slug } = await params;
   let product: ProductDetail | null = null;
-  try {
-    product = await getProduct(slug);
-  } catch {
-    product = null;
+  try { product = await getProduct(slug); }
+  catch (error) {
+    if (error instanceof ApiRequestError && error.status === 404) notFound();
+    throw error;
   }
-  if (!product) notFound();
-  const hotline = hotlineOf(await getSettingsSafe());
+  const contact = getStoreContact(await getSettingsSafe());
+  const contentCandidate = getVerifiedProductContent(product.sku);
+  const verifiedContent = contentCandidate && (!product.brand || product.brand.name.toLowerCase() === contentCandidate.brand.toLowerCase()) ? contentCandidate : undefined;
 
   const off = discountPercent(product.price, product.salePrice);
   const priceNow = effectivePrice(product.price, product.salePrice);
@@ -74,6 +78,7 @@ export default async function ProductPage({
     name: product.name,
     price: priceNow,
     image: mainImg,
+    freeShip: product.freeShip,
   };
 
   const jsonLd = {
@@ -90,10 +95,6 @@ export default async function ProductPage({
       '@type': 'Offer',
       priceCurrency: 'VND',
       price: priceNow,
-      availability:
-        totalStock > 0
-          ? 'https://schema.org/InStock'
-          : 'https://schema.org/OutOfStock',
       url: `${SITE_URL}/san-pham/${product.slug}`,
     },
     ...(product.ratingCount > 0 && {
@@ -108,16 +109,17 @@ export default async function ProductPage({
   // Cam kết bán hàng hiển thị ở cột thông tin
   const camKet = [
     'Hàng chính hãng 100%, đầy đủ hóa đơn',
-    'Đổi trả miễn phí trong 7 ngày',
+    'Đổi trả 7 ngày — SWE chịu phí khi giao sai/hàng hỏng',
     `Bảo hành: ${warranty}`,
     'Giao hàng toàn quốc, kiểm tra trước khi nhận',
   ];
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6">
+      <ProductViewMetric key={product.id} />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
       {/* Breadcrumb */}
       <nav aria-label="Breadcrumb" className="mb-4 text-sm text-zinc-600">
@@ -143,47 +145,7 @@ export default async function ProductPage({
       <div className="rounded-lg border border-zinc-200 bg-white p-4 sm:p-6">
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Gallery */}
-          <div>
-            <div className="relative aspect-square rounded-lg border border-zinc-200 bg-white">
-              {mainImg ? (
-                <Image
-                  src={mainImg}
-                  alt={product.images[0]?.alt ?? product.name}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 40vw"
-                  className="object-contain p-4"
-                  priority
-                />
-              ) : (
-                <div className="flex h-full items-center justify-center text-zinc-300">
-                  Không có ảnh
-                </div>
-              )}
-              {off !== null && (
-                <span className="absolute left-3 top-3 rounded bg-red-600 px-2 py-1 text-sm font-bold text-white">
-                  -{off}%
-                </span>
-              )}
-            </div>
-            {product.images.length > 1 && (
-              <div className="mt-3 flex gap-2">
-                {product.images.slice(0, 5).map((im, i) => (
-                  <div
-                    key={i}
-                    className="relative h-16 w-16 rounded border border-zinc-200 bg-white hover:border-teal-700"
-                  >
-                    <Image
-                      src={im.url}
-                      alt={im.alt ?? ''}
-                      fill
-                      sizes="64px"
-                      className="object-contain p-1"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <ProductGallery key={product.id} images={product.images} name={product.name} discount={off} />
 
           {/* Thông tin mua hàng */}
           <div>
@@ -225,6 +187,8 @@ export default async function ProductPage({
               )}
             </div>
 
+            {product.shortDesc && <p className="mt-3 text-sm leading-relaxed text-zinc-600">{product.shortDesc}</p>}
+
             {/* Giá */}
             <div className="mt-4 flex flex-wrap items-center gap-3 rounded-lg bg-zinc-100 px-4 py-3">
               <span className="text-2xl font-bold text-red-600">
@@ -243,20 +207,8 @@ export default async function ProductPage({
             </div>
 
             {/* Tình trạng kho + freeship */}
-            <p className="mt-3 text-sm text-zinc-500">
-              {totalStock > 0 ? (
-                <span className="font-medium text-teal-700">
-                  ✓ Còn hàng ({totalStock})
-                </span>
-              ) : (
-                <span className="font-medium text-zinc-400">Tạm hết hàng</span>
-              )}
-              {product.freeShip && (
-                <span className="ml-3 font-medium text-teal-700">
-                  ✓ Miễn phí vận chuyển
-                </span>
-              )}
-            </p>
+            <ProductStock stock={totalStock} />
+            <FreeShippingBadge eligible={product.freeShip} className="mt-2 block text-sm font-medium text-teal-700" />
 
             {/* Khối cam kết */}
             <ul className="mt-4 space-y-1.5 rounded-lg border border-teal-100 bg-teal-50 p-4 text-sm text-zinc-700">
@@ -269,17 +221,23 @@ export default async function ProductPage({
                 </li>
               ))}
             </ul>
+            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm text-teal-700">
+              <Link href="/chinh-sach-doi-tra" className="underline">Điều kiện đổi trả</Link>
+              <Link href="/chinh-sach-bao-hanh" className="underline">Quy trình bảo hành</Link>
+              <Link href="/chinh-sach-giao-hang" className="underline">Phí và thời gian giao hàng</Link>
+            </div>
+            <p className="mt-3 text-xs leading-relaxed text-zinc-500">Thời gian giao dự kiến được SWE xác nhận theo địa chỉ nhận hàng và tình trạng hàng.</p>
 
             <div id="buy-box" className="mt-6">
               <AddToCartButton product={cartProduct} />
-              {hotline && (
+              {contact.hotline && (
                 <p className="mt-3 text-sm text-zinc-600">
                   Cần tư vấn chọn máy, báo giá số lượng lớn? Gọi{' '}
                   <a
-                    href={telHref(hotline)}
+                    href={contact.tel}
                     className="font-bold text-teal-700 underline underline-offset-2"
                   >
-                    {hotline}
+                    {contact.hotline}
                   </a>
                 </p>
               )}
@@ -305,6 +263,9 @@ export default async function ProductPage({
                     ))}
                   </tbody>
                 </table>
+                {verifiedContent && <p className="mt-2 text-xs text-zinc-500">Nguồn thông số bổ sung theo đúng mã sản phẩm:{' '}
+                  <a href={verifiedContent.source.url} target="_blank" rel="noopener noreferrer" className="text-teal-700 underline">{verifiedContent.source.title}</a>.
+                  {' '}Phụ kiện giao kèm được xác nhận theo đơn.</p>}
               </div>
             )}
           </div>
@@ -325,12 +286,12 @@ export default async function ProductPage({
       )}
 
       {/* Đánh giá */}
-      {product.reviews.length > 0 && (
-        <div className="mt-6 rounded-lg border border-zinc-200 bg-white p-4 sm:p-6">
+        <section className="mt-6 rounded-lg border border-zinc-200 bg-white p-4 sm:p-6">
           <h2 className="mb-3 border-l-4 border-teal-700 pl-2 text-lg font-bold text-zinc-800">
             Đánh giá ({product.ratingCount})
           </h2>
-          <ul className="space-y-3">
+          {product.reviews.length === 0 ? <p className="text-sm text-zinc-600">Chưa có đánh giá được công bố cho sản phẩm này. Bạn đã sử dụng sản phẩm?{' '}
+            <a href={contact.zalo} target="_blank" rel="noopener noreferrer" className="font-medium text-teal-700 underline">Gửi phản hồi cho SWE</a> để được hỗ trợ.</p> : <ul className="space-y-3">
             {product.reviews.map((r) => (
               <li
                 key={r.id}
@@ -349,9 +310,8 @@ export default async function ProductPage({
                 )}
               </li>
             ))}
-          </ul>
-        </div>
-      )}
+          </ul>}
+        </section>
       <StickyBuyBar product={cartProduct} />
     </div>
   );

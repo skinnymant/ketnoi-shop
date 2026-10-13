@@ -8,6 +8,7 @@ import {
   useMemo,
   useState,
 } from 'react';
+import { trackStoreEvent } from '@/lib/metrics-client';
 
 export interface CartLine {
   id: string; // productId
@@ -15,6 +16,7 @@ export interface CartLine {
   name: string;
   price: number; // giá bán thực tế (đã tính salePrice)
   image?: string;
+  freeShip?: boolean;
   quantity: number;
 }
 
@@ -40,7 +42,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setItems(JSON.parse(raw) as CartLine[]);
+      if (raw) {
+        const parsed: unknown = JSON.parse(raw);
+        if (Array.isArray(parsed)) setItems(parsed.filter((line): line is CartLine =>
+          !!line && typeof line === 'object' && typeof line.id === 'string' &&
+          typeof line.name === 'string' && typeof line.slug === 'string' &&
+          Number.isSafeInteger(line.price) && line.price >= 0 &&
+          Number.isSafeInteger(line.quantity) && line.quantity > 0 && line.quantity <= 999));
+      }
     } catch {
       /* bỏ qua dữ liệu hỏng */
     }
@@ -49,25 +58,30 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   // Lưu lại mỗi khi giỏ đổi
   useEffect(() => {
-    if (ready) localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    if (ready) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); } catch {}
+    }
   }, [items, ready]);
 
   const add = useCallback(
     (line: Omit<CartLine, 'quantity'>, qty: number = 1) => {
+      if (!Number.isSafeInteger(qty) || qty < 1) return;
+      trackStoreEvent('add_to_cart');
       setItems((prev) => {
         const existing = prev.find((i) => i.id === line.id);
         if (existing) {
           return prev.map((i) =>
-            i.id === line.id ? { ...i, quantity: i.quantity + qty } : i,
+            i.id === line.id ? { ...i, ...line, quantity: Math.min(999, i.quantity + qty) } : i,
           );
         }
-        return [...prev, { ...line, quantity: qty }];
+        return [...prev, { ...line, quantity: Math.min(999, qty) }];
       });
     },
     [],
   );
 
   const setQty = useCallback((id: string, qty: number) => {
+    if (!Number.isSafeInteger(qty) || qty > 999) return;
     setItems((prev) =>
       qty <= 0
         ? prev.filter((i) => i.id !== id)

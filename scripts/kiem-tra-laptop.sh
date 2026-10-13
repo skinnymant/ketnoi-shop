@@ -37,26 +37,30 @@ ok "Docker đang chạy"
 # ---------- 2. Container ----------
 step 2 "Trạng thái container"
 CAN_FIX=0
+RESTART_SERVICES=""
 for svc in postgres minio api cloudflared; do
   state=$(dc ps --format '{{.State}} {{.Health}}' "$svc" 2>/dev/null | head -1)
   case "$state" in
-    "running unhealthy"*) bad "$svc: running nhưng UNHEALTHY"; CAN_FIX=1 ;;
+    "running unhealthy"*) bad "$svc: running nhưng UNHEALTHY"; CAN_FIX=1; RESTART_SERVICES="${RESTART_SERVICES:+$RESTART_SERVICES,}$svc" ;;
     running*)             ok  "$svc: $state" ;;
-    "")                   bad "$svc: không chạy"; CAN_FIX=1 ;;
-    *)                    bad "$svc: $state"; CAN_FIX=1 ;;
+    "")                   bad "$svc: không chạy"; CAN_FIX=1; RESTART_SERVICES="${RESTART_SERVICES:+$RESTART_SERVICES,}$svc" ;;
+    *)                    bad "$svc: $state"; CAN_FIX=1; RESTART_SERVICES="${RESTART_SERVICES:+$RESTART_SERVICES,}$svc" ;;
   esac
 done
 if [ "$CAN_FIX" = 1 ]; then
   if [ "$FIX" = 1 ]; then
-    hint "Đang khởi động lại stack..."
-    dc up -d
-    hint "Đợi API khởi động (tối đa 90s)..."
-    for _ in $(seq 1 18); do
-      curl -fsS -m 3 http://localhost:4000/health >/dev/null 2>&1 && break
-      sleep 5
-    done
+    hint "Kiểm tra stack và volume dữ liệu gốc trước khi khởi động lại container có sẵn..."
+    if command -v node >/dev/null 2>&1; then
+      node scripts/recover-existing-backend.cjs "--restart-services=$RESTART_SERVICES" || exit 1
+      # Chạy lại phép kiểm tra từ đầu để trạng thái trước khi sửa không còn bị tính lỗi.
+      exec bash scripts/kiem-tra-laptop.sh
+    else
+      hint "Cần Node.js >=18 trên máy backend để dùng chế độ khôi phục có kiểm tra an toàn."
+      hint "Chưa thay đổi container. Xem docs/08_KHOI_PHUC_BACKEND.md để kiểm tra máy và dữ liệu gốc."
+      exit 1
+    fi
   else
-    hint "Chạy lại với --fix để tự khởi động, hoặc: docker compose -f $COMPOSE_FILE up -d"
+    hint "Chạy lại với --fix trên đúng máy backend để khởi động lại container/volume gốc. Không tạo stack mới."
   fi
 fi
 
@@ -79,8 +83,8 @@ total=$(echo "$products" | grep -o '"total":[0-9]*' | head -1 | cut -d: -f2)
 if [ -n "$total" ] && [ "$total" -gt 0 ]; then
   ok "/products: có $total sản phẩm"
 elif [ "$total" = "0" ]; then
-  bad "/products trả 0 sản phẩm — DB chưa seed"
-  hint "docker compose -f $COMPOSE_FILE exec api npx prisma db seed"
+  bad "/products trả 0 sản phẩm — cần xác minh dữ liệu trên đúng máy backend"
+  hint "Không chạy seed: seed hiện tại xóa danh mục/đơn hàng. Kiểm tra volume DB và bản sao lưu trước."
 else
   bad "/products lỗi: ${products:0:200}"
 fi

@@ -3,9 +3,10 @@ import Image from 'next/image';
 import type { ProductCard as ProductCardType } from '@/lib/types';
 import { formatVND, discountPercent, effectivePrice } from '@/lib/format';
 import RatingStars from './RatingStars';
+import { FreeShippingBadge } from './StoreAvailability';
 
 // Thẻ sản phẩm dùng chung: badge giảm giá, sao đánh giá + đã bán, giá đỏ nổi bật
-export default function ProductCard({ product }: { product: ProductCardType }) {
+export default function ProductCard({ product, eager = false }: { product: ProductCardType; eager?: boolean }) {
   const img = product.images?.[0]?.url;
   const off = discountPercent(product.price, product.salePrice);
 
@@ -22,6 +23,8 @@ export default function ProductCard({ product }: { product: ProductCardType }) {
             fill
             sizes="(max-width: 768px) 50vw, 20vw"
             className="object-contain p-2"
+            loading={eager ? 'eager' : 'lazy'}
+            fetchPriority={eager ? 'high' : 'auto'}
           />
         ) : (
           <div className="flex h-full items-center justify-center text-xs text-zinc-300">
@@ -34,11 +37,7 @@ export default function ProductCard({ product }: { product: ProductCardType }) {
             -{off}%
           </span>
         )}
-        {product.freeShip && (
-          <span className="absolute right-2 top-2 rounded bg-emerald-700 px-1.5 py-0.5 text-[11px] font-semibold text-white">
-            Freeship
-          </span>
-        )}
+        <FreeShippingBadge eligible={product.freeShip} className="absolute right-2 top-2 rounded bg-emerald-700 px-1.5 py-0.5 text-[11px] font-semibold text-white" />
       </div>
 
       <div className="flex flex-1 flex-col gap-1 p-3">

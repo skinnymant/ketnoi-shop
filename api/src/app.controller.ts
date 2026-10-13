@@ -8,6 +8,13 @@ export class AppController {
   @Get('health')
   async health() {
     await this.prisma.$queryRaw`SELECT 1`;
-    return { status: 'ok', database: 'connected' };
+    return {
+      status: 'ok',
+      database: 'connected',
+      capabilities: {
+        effectivePriceFilters: true,
+        productFreeShipping: true,
+      },
+    };
   }
 }
